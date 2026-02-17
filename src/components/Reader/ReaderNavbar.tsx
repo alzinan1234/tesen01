@@ -48,9 +48,9 @@ const ReaderNavbar = () => {
         <div className="absolute left-1/2 -translate-x-1/2">
           <Link href="/">
             <img
-              src="/oped.png" 
+              src="/nav-logo.png" 
               alt="OPED"
-              className="h-10 md:h-12 w-auto object-contain"
+              className=""
             />
           </Link>
         </div>
