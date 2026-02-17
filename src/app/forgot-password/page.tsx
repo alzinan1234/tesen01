@@ -1,10 +1,10 @@
-import ReaderBanner from '@/components/Reader/ReaderHome/ReaderBanner'
+import ForgotPassword from '@/components/ForgotPassword/ForgotPassword'
 import React from 'react'
 
 const page = () => {
   return (
     <div>
-       <ReaderBanner />
+        <ForgotPassword />
     </div>
   )
 }

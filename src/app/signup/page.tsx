@@ -1,10 +1,10 @@
-import ReaderBanner from '@/components/Reader/ReaderHome/ReaderBanner'
+import SignUp from '@/components/SignUp/SignUp'
 import React from 'react'
 
 const page = () => {
   return (
     <div>
-       <ReaderBanner />
+          <SignUp />
     </div>
   )
 }
