@@ -84,7 +84,7 @@ export default function SignUp() {
                 }`}
               >
                 Writer
-              </button>
+              </button> 
             </div>
           </div>
 
