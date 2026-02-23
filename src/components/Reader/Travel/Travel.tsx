@@ -1,12 +1,11 @@
-
 import React from 'react'
 
-const page = () => {
+const Travel = () => {
   return (
     <div>
-       
+      
     </div>
   )
 }
 
-export default page
+export default Travel

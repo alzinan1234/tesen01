@@ -1,12 +1,11 @@
-
 import React from 'react'
 
-const page = () => {
+const Explore = () => {
   return (
     <div>
-       
+      
     </div>
   )
 }
 
-export default page
+export default Explore            

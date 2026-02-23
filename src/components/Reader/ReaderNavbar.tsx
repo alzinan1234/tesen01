@@ -6,15 +6,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Search, Menu, X } from "lucide-react";
 
 const navLinks = [
-  { name: "Explore", href: "/explore" },
-  { name: "Politics", href: "/politics" },
-  { name: "Business", href: "/business" },
-  { name: "Finance", href: "/finance" },
-  { name: "Technology", href: "/technology" },
-  { name: "Culture", href: "/culture" },
-  { name: "Travel", href: "/travel" },
-  { name: "Gastronomy", href: "/gastronomy" },
-  { name: "Podcasts", href: "/podcasts" },
+  { name: "Explore", href: "/reader/explore" },
+  { name: "Politics", href: "/reader/politics" },
+  { name: "Business", href: "/reader/business" },
+  { name: "Finance", href: "/reader/finance" },
+  { name: "Technology", href: "/reader/technology" },
+  { name: "Culture", href: "/reader/culture" },
+  { name: "Travel", href: "/reader/travel" },
+  { name: "Gastronomy", href: "/reader/gastronomy" },
+  { name: "Podcasts", href: "/reader/podcasts" },
 ];
 
 const ReaderNavbar = () => {

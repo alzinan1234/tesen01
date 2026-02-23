@@ -1,12 +1,11 @@
-
 import React from 'react'
 
-const page = () => {
+const Politics = () => {
   return (
     <div>
-       
+               
     </div>
   )
 }
 
-export default page
+export default Politics
