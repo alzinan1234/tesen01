@@ -32,7 +32,7 @@ export default function RootLayout({ children }) {
 
           {/* Main Content Area */}
           <main
-            className={`transition-all duration-300 ease-in-out flex-1 flex flex-col min-h-screen ${
+            className={`transition-all bg-white duration-300 ease-in-out flex-1 flex flex-col min-h-screen ${
               isOpen ? 'ml-64' : 'ml-20'
             }`}
           >
@@ -43,7 +43,7 @@ export default function RootLayout({ children }) {
             <div className="p-4 flex-1">
               {children}
             </div>
-            <WriterFooter />
+           
           </main>
         </div>
       </body>
