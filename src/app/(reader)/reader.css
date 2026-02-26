@@ -29,3 +29,16 @@ body {
   font-family: var(--font-sans); /* CoFo Raffine globally */
 }
 
+
+@keyframes march {
+  from {
+    stroke-dashoffset: 28; /* Dash array-er double size */
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-march {
+  animation: march 1s linear infinite;
+}

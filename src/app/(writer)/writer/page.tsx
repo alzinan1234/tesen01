@@ -1,9 +1,13 @@
+
+import BlogProfile from '@/components/Writer/BlogProfile'
+import WriterPodcasts from '@/components/Writer/WriterPodcasts'
 import React from 'react'
 
 const page = () => {
   return (
     <div>
-       writer
+       <BlogProfile />
+       <WriterPodcasts />
     </div>
   )
 }

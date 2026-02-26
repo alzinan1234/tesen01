@@ -1,10 +1,12 @@
-import Business from '@/components/Reader/Business/Business'
+
+
+import Podcasts from '@/components/Writer/Podcast/Podcasts'
 import React from 'react'
 
 const page = () => {
   return (
     <div>
-       <Business />
+         <Podcasts/>
     </div>
   )
 }

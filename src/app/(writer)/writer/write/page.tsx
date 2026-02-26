@@ -1,10 +1,10 @@
-import Business from '@/components/Reader/Business/Business'
+import Write from '@/components/Writer/Write/Write'
 import React from 'react'
 
 const page = () => {
   return (
     <div>
-       <Business />
+       <Write />
     </div>
   )
 }
