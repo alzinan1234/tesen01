@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation"; // Added to detect active route
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Menu, X } from "lucide-react";
 
@@ -21,11 +21,11 @@ const navLinks = [
 const ReaderNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const pathname = usePathname(); // Get current URL path
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      setIsScrolled(window.scrollY > 50); // Adjusted threshold for smoother transition
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -33,66 +33,93 @@ const ReaderNavbar = () => {
 
   return (
     <nav
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 border-b shadow font-sans ${
-        isScrolled ? "bg-white/95 backdrop-blur-md shadow-sm" : "bg-white"
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 border-b font-sans ${
+        isScrolled ? "bg-white/95 backdrop-blur-md shadow-md" : "bg-white shadow"
       } border-gray-200`}
     >
-      {/* 1. Top Section */}
-      <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-20 h-20 md:h-24 flex items-center justify-between relative">
-        
-        {/* Mobile Menu Toggle */}
-        <div className="flex-1 md:hidden">
-          <button onClick={() => setIsOpen(true)} className="text-gray-900 p-2 -ml-2">
-            <Menu size={28} />
-          </button>
-        </div>
+      {/* 1. Top Section - Wrapped in motion to hide on scroll */}
+      <motion.div 
+        initial={false}
+        animate={{ 
+          height: isScrolled ? 0 : "auto", 
+          opacity: isScrolled ? 0 : 1,
+        }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+        className="overflow-hidden"
+      >
+        <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-20 h-20 md:h-24 flex items-center justify-between relative">
+          
+          {/* Mobile Menu Toggle */}
+          <div className="flex-1 md:hidden">
+            <button onClick={() => setIsOpen(true)} className="text-gray-900 p-2 -ml-2">
+              <Menu size={28} />
+            </button>
+          </div>
 
-        {/* LOGO */}
-        <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center">
-          <Link href="/">
-            <img
-              src="/nav-logo.png" 
-              alt="OPED"
-              className="h-8 md:h-12 w-auto object-contain"
-            />
-          </Link>
-        </div>
+          {/* LOGO */}
+          <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center">
+            <Link href="/">
+              <img
+                src="/nav-logo.png" 
+                alt="OPED"
+                className="h-8 md:h-12 w-auto object-contain"
+              />
+            </Link>
+          </div>
 
-        {/* RIGHT ACTIONS */}
-        <div className="flex-1 flex justify-end items-center gap-3 sm:gap-6 lg:gap-8">
-          <Link
-            href="/login"
-            className="hidden md:block text-gray-900 hover:text-[#3448D6] transition-colors"
-            style={{
-              fontWeight: 900,
-              fontSize: '18px',
-              lineHeight: '140%',
-              letterSpacing: '0.06em'
-            }}
-          >
-            Sign In
-          </Link>
-          <Link href="/reader/subscribe">
-            <button className="px-4 sm:px-8 py-2 bg-gradient-to-r from-[#343E87] via-[#3448D6] hidden sm:inline to-[#343E87] text-white rounded-full font-bold shadow-lg shadow-blue-900/20 hover:scale-105 transition-all active:scale-95 whitespace-nowrap"
+          {/* RIGHT ACTIONS */}
+          <div className="flex-1 flex justify-end items-center gap-3 sm:gap-6 lg:gap-8">
+            <Link
+              href="/login"
+              className="hidden md:block text-gray-900 hover:text-[#3448D6] transition-colors"
               style={{
                 fontWeight: 900,
-                fontSize: '14px',
+                fontSize: '18px',
                 lineHeight: '140%',
                 letterSpacing: '0.06em'
-              }}>
-              Subscribe
+              }}
+            >
+              Sign In
+            </Link>
+            <Link href="/reader/subscribe">
+              <button className="px-4 sm:px-8 py-2 bg-gradient-to-r from-[#343E87] via-[#3448D6] hidden sm:inline to-[#343E87] text-white rounded-full font-bold shadow-lg shadow-blue-900/20 hover:scale-105 transition-all active:scale-95 whitespace-nowrap"
+                style={{
+                  fontWeight: 900,
+                  fontSize: '14px',
+                  lineHeight: '140%',
+                  letterSpacing: '0.06em'
+                }}>
+                Subscribe
+              </button>
+            </Link>
+
+            <button className="text-gray-900 hover:text-[#3448D6] transition-colors p-1">
+              <Search size={24} className="md:w-[28px] md:h-[28px]" />
             </button>
-          </Link>
-
-          <button className="text-gray-900 hover:text-[#3448D6] transition-colors p-1">
-            <Search size={24} className="md:w-[28px] md:h-[28px]" />
-          </button>
+          </div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* 2. Bottom Section: Nav Links */}
-      <div className="hidden md:block w-full border-t border-gray-100 overflow-x-auto no-scrollbar">
-        <div className="max-w-7xl mx-auto px-6 h-14 flex justify-center items-center gap-6 lg:gap-10">
+      {/* 2. Bottom Section: Nav Links - Always stays visible */}
+      <div className="w-full border-t border-gray-100 overflow-x-auto no-scrollbar">
+        {/* Mobile: Only show menu icon when top section is hidden */}
+        <div className="md:hidden flex items-center px-4 h-12">
+            {isScrolled && (
+                 <button onClick={() => setIsOpen(true)} className="text-gray-900 mr-4">
+                    <Menu size={24} />
+                 </button>
+            )}
+            <div className="flex-1 overflow-x-auto no-scrollbar flex items-center gap-6 h-full">
+                {navLinks.map((link) => (
+                    <Link key={link.name} href={link.href} className={`text-xs font-black uppercase whitespace-nowrap ${pathname === link.href ? "text-[#3448D6]" : "text-gray-800"}`}>
+                        {link.name}
+                    </Link>
+                ))}
+            </div>
+        </div>
+
+        {/* Desktop Links */}
+        <div className="hidden md:flex max-w-7xl mx-auto px-6 h-14 justify-center items-center gap-6 lg:gap-10">
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
@@ -110,9 +137,6 @@ const ReaderNavbar = () => {
                 }}
               >
                 {link.name}
-                
-                {/* Underline Animation */}
-                {/* If active, show full underline. If not, show hover animation */}
                 <motion.div
                   className="absolute -bottom-1 left-0 h-[2px] bg-[#3448D6]"
                   initial={false}
@@ -126,7 +150,7 @@ const ReaderNavbar = () => {
         </div>
       </div>
 
-      {/* 3. Mobile Sidebar Navigation */}
+      {/* 3. Mobile Sidebar Navigation (Remains Same) */}
       <AnimatePresence>
         {isOpen && (
           <>

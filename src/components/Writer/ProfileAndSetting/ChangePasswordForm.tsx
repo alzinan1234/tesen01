@@ -77,7 +77,7 @@ export default function ChangePasswordForm() {
         {/* Constrain div width for centering */}
         <label
           htmlFor="confirmedPassword"
-          className="block text-white  text-sm font-bold mb-2"
+          className="block text-black text-sm font-bold mb-2"
         >
           Confirmed Password
         </label>

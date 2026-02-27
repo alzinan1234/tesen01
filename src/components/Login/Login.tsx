@@ -65,7 +65,7 @@ export default function LoginPage() {
                 {...register("email")}
                 type="email"
                 placeholder="Enter your email address"
-                className="w-full px-4 py-3 rounded-xl border text-black border-[#C1D0E5] focus:ring-2 focus:ring-[#3448D6]/20 focus:outline-none transition-all placeholder:text-gray-300 font-sans"
+                className="w-full px-4 py-3 rounded-xl border text-black border-[#C1D0E5] focus:ring-2 focus:ring-[#3448D6]/20 focus:outline-none transition-all placeholder:text-gray-300 font-serif"
               />
               {errors.email && <p className="text-red-500 text-xs">{errors.email.message}</p>}
             </div>
@@ -80,7 +80,7 @@ export default function LoginPage() {
                   {...register("password")}
                   type={showPassword ? "text" : "password"}
                   placeholder="........"
-                  className="w-full px-4 py-3 rounded-xl border text-black border-[#C1D0E5] focus:ring-2 focus:ring-[#3448D6]/20 focus:outline-none transition-all font-sans"
+                  className="w-full px-4 py-3 rounded-xl border text-black border-[#C1D0E5] focus:ring-2 focus:ring-[#3448D6]/20 focus:outline-none transition-all font-serif"
                 />
                 <button
                   type="button"

@@ -22,8 +22,8 @@ const WriterNavbar = () => {
         {/* Right Side: Actions */}
         <div className="flex-1 flex justify-end items-center gap-6">
           <Link 
-            href="/login" 
-            className="text-black font-serif font-bold text-lg hover:text-gray-600 transition-colors"
+            href="/" 
+            className="text-black font-sans font-bold text-2xl hover:text-gray-600 transition-colors"
           >
             Sign In
           </Link>

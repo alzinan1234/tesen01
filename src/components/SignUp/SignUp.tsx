@@ -56,17 +56,17 @@ export default function SignUp() {
           
           {/* Logo */}
           <div className="mb-10">
-            <img src="/oped.png" alt="Logo" className="w-[120px] h-auto" />
+            <img src="/oped.png" alt="Logo" className="w-[150px] h-auto" />
           </div>
 
           {/* Role Switcher */}
           <div className="text-center mb-8">
-            <h2 className="font-serif text-[27px] text-gray-800 mb-4">Choose Your Role</h2>
+            <h2 className="font-serif text-[35px] text-gray-800 mb-4">Choose Your Role</h2>
             <div className="inline-flex  bg-white border border-gray-100 rounded-full shadow-sm w-full">
               <button
                 type="button"
                 onClick={() => handleRoleChange("reader")}
-                className={`flex-1 py-2 text-sm font-serif  font-medium rounded-full transition-all duration-300 ${
+                className={`flex-1 py-3 text-sm font-serif  font-medium rounded-full transition-all duration-300 ${
                   activeRole === "reader" 
                   ? "bg-[#3448D6] text-white shadow-md" 
                   : "bg-transparent text-gray-500 hover:text-gray-700"
@@ -103,7 +103,7 @@ export default function SignUp() {
                 {...register("name")}
                 type="text"
                 placeholder="Enter your name"
-                className="w-full px-4 py-3 rounded-xl border text-black border-[#C1D0E5] focus:ring-2 focus:ring-[#3448D6]/20 focus:outline-none transition-all placeholder:text-gray-300"
+                className="w-full px-4 py-3 rounded-xl border text-black border-[#C1D0E5] focus:ring-2 focus:ring-[#3448D6]/20 focus:outline-none font-serif transition-all placeholder:text-gray-300"
               />
               {errors.name && <p className="text-red-500 text-xs">{errors.name.message}</p>}
             </div>
@@ -115,7 +115,7 @@ export default function SignUp() {
                 {...register("email")}
                 type="email"
                 placeholder="Enter your email address"
-                className="w-full px-4 py-3 rounded-xl font-sans  text-black border border-[#C1D0E5] focus:ring-2 focus:ring-[#3448D6]/20 focus:outline-none transition-all placeholder:text-gray-300"
+                className="w-full px-4 py-3 rounded-xl font-serif  text-black border border-[#C1D0E5] focus:ring-2 focus:ring-[#3448D6]/20 focus:outline-none transition-all placeholder:text-gray-300"
               />
               {errors.email && <p className="text-red-500 text-xs">{errors.email.message}</p>}
             </div>
@@ -128,7 +128,7 @@ export default function SignUp() {
                   {...register("password")}
                   type={showPassword ? "text" : "password"}
                   placeholder="........"
-                  className="w-full px-4 py-3 rounded-xl font-sans  text-black border border-[#C1D0E5] focus:ring-2 focus:ring-[#3448D6]/20 focus:outline-none transition-all"
+                  className="w-full px-4 py-3 rounded-xl font-serif  text-black border border-[#C1D0E5] focus:ring-2 focus:ring-[#3448D6]/20 focus:outline-none transition-all"
                 />
                 <button
                   type="button"

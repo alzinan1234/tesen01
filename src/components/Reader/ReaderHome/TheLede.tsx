@@ -17,7 +17,7 @@ const TodayMixCard = () => {
       {/* Title Section */}
       <div className="text-center mb-12">
         <h2 className="text-[42px] md:text-[54px] font-sans  text-gray-900">
-          Today's Mix
+          The Lede
         </h2>
       </div>
 
