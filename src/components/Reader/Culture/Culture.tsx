@@ -68,8 +68,8 @@ const Culture = () => {
     <main className="bg-white min-h-screen pt-28 md:pt-64 pb-10">
       {/* Header Section */}
       <div className="max-w-4xl mx-auto text-center mb-16 px-4">
-        <h1 className="text-6xl font-sans text-gray-900 mb-4 font-extrabold">Culture</h1>
-        <p className="text-black font-serif text-lg">Every New Yorker post.</p>
+        <h1 className="text-6xl font-sans text-gray-900 mb-4 font-extrabold tracking-wide">Culture</h1>
+        <p className="text-black font-serif text-lg tracking-wide">Every New Yorker post.</p>
         <div className="h-[1px] bg-gray-100 w-full mt-10"></div>
       </div>
 
@@ -84,18 +84,18 @@ const Culture = () => {
                     <img src={`https://ui-avatars.com/api/?name=${article.author}&background=random`} alt="" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[19px] font-bold font-sans text-gray-900 ">{article.author}</span>
-                    <span className="text-[14px] font-serif text-gray-400 mt-1">{article.date}</span>
+                    <span className="text-[19px] font-bold font-sans text-gray-900 tracking-wide">{article.author}</span>
+                    <span className="text-[14px] font-serif text-gray-400 mt-1 tracking-wide">{article.date}</span>
                   </div>
                 </div>
 
                 <Link href={`/reader/culture/${article.id}`}>
-                  <h2 className="text-2xl font-sans font-extrabold text-gray-900 mb-4 group-hover:text-blue-700 transition-colors cursor-pointer">
+                  <h2 className="text-2xl font-sans font-extrabold text-gray-900 mb-4 group-hover:text-blue-700 transition-colors cursor-pointer tracking-wide">
                     {article.title}
                   </h2>
                 </Link>
                 
-                <p className="text-gray-600 text-sm leading-relaxed mb-6 font-serif">
+                <p className="text-gray-600 text-sm leading-relaxed mb-6 font-serif tracking-wide">
                   {article.description}
                 </p>
 
@@ -103,15 +103,15 @@ const Culture = () => {
                   <div className="flex items-center gap-6">
                     <button onClick={() => handleLike(article.id)} className={`flex items-center gap-2 font-sans transition-all active:scale-90 ${article.isLiked ? 'text-blue-600' : 'text-black'}`}>
                       <ThumbsUp size={20} fill={article.isLiked ? "currentColor" : "none"} /> 
-                      <span className="text-xs font-bold">{article.likes}</span>
+                      <span className="text-xs font-bold tracking-wide">{article.likes}</span>
                     </button>
 
                     <button onClick={() => toggleComment(article.id)} className="flex items-center gap-2 font-sans text-black transition-all active:scale-90">
-                      <MessageSquare size={20} /> <span className="text-xs font-bold">{article.comments}</span>
+                      <MessageSquare size={20} /> <span className="text-xs font-bold tracking-wide">{article.comments}</span>
                     </button>
 
                     <button onClick={() => handleShare(article)} className="flex items-center gap-2 font-sans text-black transition-all active:scale-90">
-                      <Share2 size={20} /> <span className="text-xs font-bold">{article.shares}</span>
+                      <Share2 size={20} /> <span className="text-xs font-bold tracking-wide">{article.shares}</span>
                     </button>
                   </div>
                   <button className="p-2.5 bg-gray-50 rounded-full hover:bg-white hover:shadow-md transition-all border border-transparent hover:border-gray-100">
@@ -130,12 +130,12 @@ const Culture = () => {
               <div className="mt-6 bg-[#F2F2F2] rounded-2xl p-6 transition-all">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-8 h-8 rounded-full bg-black flex items-center justify-center">
-                    <span className="text-white text-[10px] font-bold">US</span>
+                    <span className="text-white text-[10px] font-bold tracking-wide">US</span>
                   </div>
-                  <span className="font-sans font-bold text-sm">Your Account</span>
+                  <span className="font-sans font-bold text-sm tracking-wide">Your Account</span>
                 </div>
                 <textarea 
-                  className="w-full bg-transparent border-none outline-none focus:ring-0 focus:outline-none text-gray-700 placeholder-gray-400 font-serif resize-none p-0"
+                  className="w-full bg-transparent border-none outline-none focus:ring-0 focus:outline-none text-gray-700 placeholder-gray-400 font-serif resize-none p-0 tracking-wide"
                   placeholder="Write a comment..."
                   rows={2}
                   autoFocus
@@ -146,8 +146,8 @@ const Culture = () => {
                   }}
                 />
                 <div className="flex justify-start items-center gap-6 mt-4">
-                  <button onClick={() => toggleComment(article.id)} className="text-gray-500 hover:text-black transition-colors font-serif text-sm">Cancel</button>
-                  <button onClick={() => submitComment(article.id)} className="px-8 py-2.5 bg-[#D1D5DB] hover:bg-gray-300 text-gray-900 rounded-full font-serif text-sm transition-colors">Submit</button>
+                  <button onClick={() => toggleComment(article.id)} className="text-gray-500 hover:text-black transition-colors font-serif text-sm tracking-wide">Cancel</button>
+                  <button onClick={() => submitComment(article.id)} className="px-8 py-2.5 bg-[#D1D5DB] hover:bg-gray-300 text-gray-900 rounded-full font-serif text-sm transition-colors tracking-wide">Submit</button>
                 </div>
               </div>
             )}
@@ -160,7 +160,7 @@ const Culture = () => {
         <div className="flex justify-center mt-20 pb-18">
           <button 
             onClick={() => setCurrentPage(prev => prev + 1)}
-            className="px-12 py-3.5 bg-black text-white rounded-xl font-serif text-lg hover:bg-gray-800 transition-all shadow-xl active:scale-95"
+            className="px-12 py-3.5 bg-black text-white rounded-xl font-serif text-lg hover:bg-gray-800 transition-all shadow-xl active:scale-95 tracking-wide"
           >
             Next Page
           </button>

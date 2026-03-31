@@ -51,12 +51,11 @@ const OpedRadyo = () => {
 
       {/* Header */}
       <div className="max-w-6xl mx-auto text-center mb-12">
-        <h1 className="text-5xl font-sans font-extrabold mb-4 text-black">Oped Radyo</h1>
-        <p className="text-gray-500 font-serif text-sm px-4">
+        <h1 className="text-5xl font-sans font-extrabold mb-4 text-black tracking-wide">Oped Radyo</h1>
+        <p className="text-gray-500 font-serif text-sm px-4 tracking-wide">
           OPED's editors present interviews, profiles, and in-depth conversations, produced in collaboration with our podcast team.
         </p>
       </div>
-
       {/* Main Player Box (Exact Image Layout) */}
       <div className="max-w-6xl mx-auto px-4 mb-20">
         <div className="border border-gray-200 rounded-3xl p-8 flex flex-col md:flex-row gap-8 items-center bg-white shadow-sm">
@@ -64,13 +63,13 @@ const OpedRadyo = () => {
              <div className="flex items-center gap-2 mb-4">
                 <img src={`https://ui-avatars.com/api/?name=MU&background=random`} className="w-8 h-8 rounded-full" alt="MU" />
                 <div className="text-xs">
-                  <p className="font-bold text-black">Manchester United</p>
-                  <p className="text-gray-400">22 Jan, 2026</p>
+                  <p className="font-bold text-black tracking-wide">Manchester United</p>
+                  <p className="text-gray-400 tracking-wide">22 Jan, 2026</p>
                 </div>
              </div>
-             <p className="text-gray-400 text-xs mb-1 font-serif">Expert opinions</p>
-             <h2 className="text-xl font-sans font-extrabold mb-2 text-black">{currentTrack.title}</h2>
-             <p className="text-gray-400 text-xs mb-6 font-serif">{currentTrack.date}</p>
+             <p className="text-gray-400 text-xs mb-1 font-serif tracking-wide">Expert opinions</p>
+             <h2 className="text-xl font-sans font-extrabold mb-2 text-black tracking-wide">{currentTrack.title}</h2>
+             <p className="text-gray-400 text-xs mb-6 font-serif tracking-wide">{currentTrack.date}</p>
 
              {/* Progress Bar */}
              <div className="w-full bg-gray-100 h-1 rounded-full mb-2 relative cursor-pointer" 
@@ -82,10 +81,9 @@ const OpedRadyo = () => {
                 <div className="absolute left-0 top-0 bg-black h-full rounded-full" style={{ width: `${(currentTime/duration)*100}%` }}></div>
                 <div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-black rounded-full shadow-md" style={{ left: `${(currentTime/duration)*100}%` }}></div>
              </div>
-             <div className="flex justify-end text-[10px] text-gray-400 mb-6 font-sans">
+             <div className="flex justify-end text-[10px] text-gray-400 mb-6 font-sans tracking-wide">
                {formatTime(currentTime)} / {formatTime(duration)}
              </div>
-
              {/* Controls */}
              <div className="flex items-center justify-center gap-8">
                 <RotateCcw size={20} className="text-gray-600 cursor-pointer" onClick={() => audioRef.current.currentTime -= 10}/>
@@ -102,12 +100,11 @@ const OpedRadyo = () => {
              <img src={currentTrack.image} className="w-full h-full object-cover" alt="Episode" />
           </div>
         </div>
-
         {/* Episode List Section (Same to Image) */}
         <div className="mt-8 border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
           <div className="bg-gray-50/50 p-4 border-b border-gray-100 flex justify-between items-center px-6">
              <span className="font-sans font-bold text-sm text-black uppercase tracking-wider">All Podcast</span>
-             <span className="text-xs text-gray-400">100 Episodes</span>
+             <span className="text-xs text-gray-400 tracking-wide">100 Episodes</span>
           </div>
           <div className="max-h-[300px] overflow-y-auto">
              {episodes.map((ep) => (
@@ -115,10 +112,10 @@ const OpedRadyo = () => {
                     onClick={() => handleTrackChange(ep)}
                     className="p-5 border-b border-gray-50 flex items-center justify-between hover:bg-gray-50 cursor-pointer group px-8">
                   <div>
-                    <h4 className={`text-sm font-sans font-bold transition-colors ${currentTrack.id === ep.id ? 'text-blue-600' : 'text-black group-hover:text-blue-600'}`}>
+                    <h4 className={`text-sm font-sans font-bold transition-colors tracking-wide ${currentTrack.id === ep.id ? 'text-blue-600' : 'text-black group-hover:text-blue-600'}`}>
                       {ep.title}
                     </h4>
-                    <p className="text-[11px] text-gray-400 mt-1 font-serif">{ep.date} | {ep.length}</p>
+                    <p className="text-[11px] text-gray-400 mt-1 font-serif tracking-wide">{ep.date} | {ep.length}</p>
                   </div>
                   {currentTrack.id === ep.id && isPlaying ? <Pause size={20} /> : <Play size={20} className="text-gray-800" />}
                </div>
@@ -126,23 +123,22 @@ const OpedRadyo = () => {
           </div>
         </div>
       </div>
-
       {/* All Episodes Bottom Section (Same to Image) */}
       <div className="max-w-6xl mx-auto px-6">
-        <h3 className="text-5xl font-sans text-center  font-extrabold mb-9 text-black border-b border-t py-3 border-gray-100">All Episodes</h3>
+        <h3 className="text-5xl font-sans text-center font-extrabold mb-9 text-black border-b border-t py-3 border-gray-100 tracking-wide">All Episodes</h3>
         <div className="space-y-12">
           {episodes.map((ep) => (
             <div key={ep.id} className="flex flex-col md:flex-row gap-10 items-start border-b border-gray-50 pb-12">
                <div className="flex-1">
-                  <h4 className="text-xl font-sans font-extrabold mb-3 text-black">The Future of Digital Media and the Changing Voice of Independent Journalism</h4>
-                  <p className="text-gray-500 text-sm font-serif leading-relaxed mb-4">As technology evolves and reader habits shift, independent platforms are redefining how stories are told, shared, and trusted the world.</p>
-                  <button className="text-blue-600 text-xs font-bold flex items-center gap-1 font-sans mb-6">Read More <ArrowUpRight size={14}/></button>
-                  <div className="flex gap-6 text-gray-500 font-sans">
+                  <h4 className="text-xl font-sans font-extrabold mb-3 text-black tracking-wide">The Future of Digital Media and the Changing Voice of Independent Journalism</h4>
+                  <p className="text-gray-500 text-sm font-serif leading-relaxed mb-4 tracking-wide">As technology evolves and reader habits shift, independent platforms are redefining how stories are told, shared, and trusted the world.</p>
+                  <button className="text-blue-600 text-xs font-bold flex items-center gap-1 font-sans mb-6 tracking-wide">Read More <ArrowUpRight size={14}/></button>
+                  <div className="flex gap-6 text-gray-500 font-sans tracking-wide">
                     <span className="flex items-center gap-1 text-xs cursor-pointer hover:text-blue-600"><ThumbsUp size={16}/> 9M</span>
                     <span className="flex items-center gap-1 text-xs cursor-pointer hover:text-blue-600"><MessageSquare size={16}/> 45K</span>
                     <span className="flex items-center gap-1 text-xs cursor-pointer hover:text-blue-600"><Share2 size={16}/> 854</span>
                   </div>
-                  <p className="text-[10px] text-gray-400 mt-4 font-sans">{ep.date}</p>
+                  <p className="text-[10px] text-gray-400 mt-4 font-sans tracking-wide">{ep.date}</p>
                </div>
                <div className="w-full md:w-[280px] h-[180px] rounded-2xl overflow-hidden relative group shadow-md">
                   <img src={ep.image} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt="Episode" />

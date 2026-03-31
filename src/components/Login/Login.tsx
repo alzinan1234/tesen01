@@ -55,6 +55,7 @@ export default function LoginPage() {
         {/* 3. Login Form */}
         <div className="w-full max-w-[400px]">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 font-sans">
+             
             
             {/* Email */}
             <div className="space-y-1.5 font-sans">
@@ -69,7 +70,7 @@ export default function LoginPage() {
               />
               {errors.email && <p className="text-red-500 text-xs">{errors.email.message}</p>}
             </div>
-
+    
             {/* Password */}
             <div className="space-y-1.5">
               <label className="block text-sm font-bold text-gray-800">

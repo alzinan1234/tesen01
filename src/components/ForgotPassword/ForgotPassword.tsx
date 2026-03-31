@@ -74,7 +74,6 @@ export default function ForgotPassword() {
           className="w-full h-full object-cover"
         />
       </div>
-
       {/* RIGHT SIDE: Form Section */}
       <div className="w-full md:w-1/2 lg:w-[55%] flex flex-col items-center justify-center py-12 px-6">
         
@@ -96,7 +95,6 @@ export default function ForgotPassword() {
                     Enter your email, we will send a verification code to your email.
                   </p>
                 </div>
-
                 <form onSubmit={emailForm.handleSubmit(onEmailSubmit)} className="space-y-6">
                   <div className="space-y-2">
                     <label className="block text-sm font-bold font-sans text-gray-800">Email Address</label>
@@ -114,7 +112,6 @@ export default function ForgotPassword() {
                 </form>
               </div>
             )}
-
             {/* STEP 2: VERIFY OTP */}
             {step === 'otp' && (
               <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -138,7 +135,6 @@ export default function ForgotPassword() {
                       />
                     ))}
                   </div>
-                  
                   <div className="text-center space-y-1">
                     <p className="text-[13px] text-gray-500 font-sans">
                       Didn't receive the code? <button type="button" className="text-[#FF4D4D] font-bold italic hover:underline">Resend code</button>
@@ -164,7 +160,6 @@ export default function ForgotPassword() {
                     Your password must be different from previous used password.
                   </p>
                 </div>
-
                 <form onSubmit={passForm.handleSubmit((d) => console.log(d))} className="space-y-5 font-sans">
                   <div className="space-y-2">
                     <label className="block text-sm font-bold text-gray-800">New Password</label>
@@ -196,7 +191,6 @@ export default function ForgotPassword() {
                     </div>
                     {passForm.formState.errors.confirmPassword && <p className="text-red-500 text-xs">{passForm.formState.errors.confirmPassword.message}</p>}
                   </div>
-
                   <button type="submit" className="w-full py-3.5 bg-gradient-to-r from-[#343E87] via-[#3448D6] to-[#343E87] text-white rounded-full font-bold shadow-lg mt-4">
                     Continue
                   </button>

@@ -42,8 +42,8 @@ const Explore = () => {
   return (
     <main className="bg-white min-h-screen pt-28 md:pt-64 pb-10">
       <div className="max-w-4xl mx-auto text-center mb-16 px-4">
-        <h1 className="text-6xl font-sans text-gray-900 mb-4 font-extrabold">Explore</h1>
-        <p className="text-black font-serif text-lg">Discover stories from around the world.</p>
+        <h1 className="text-6xl font-sans text-gray-900 mb-4 font-extrabold tracking-wide">Explore</h1>
+        <p className="text-black font-serif text-lg tracking-wide">Discover stories from around the world.</p>
         <div className="h-[1px] bg-gray-100 w-full mt-10"></div>
       </div>
 
@@ -57,30 +57,30 @@ const Explore = () => {
                     <img src={`https://ui-avatars.com/api/?name=${article.author}&background=random`} alt="" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[19px] font-bold font-sans text-gray-900 ">{article.author}</span>
-                    <span className="text-[14px] font-serif text-gray-400 mt-1">{article.date}</span>
+                    <span className="text-[19px] font-bold font-sans text-gray-900 tracking-wide">{article.author}</span>
+                    <span className="text-[14px] font-serif text-gray-400 mt-1 tracking-wide">{article.date}</span>
                   </div>
                 </div>
 
                 <Link href={`/reader/explore/${article.id}`}>
-                  <h2 className="text-2xl font-sans font-extrabold text-gray-900 mb-4 group-hover:text-blue-700 transition-colors cursor-pointer">
+                  <h2 className="text-2xl font-sans font-extrabold text-gray-900 mb-4 group-hover:text-blue-700 transition-colors cursor-pointer tracking-wide">
                     {article.title}
                   </h2>
                 </Link>
                 
-                <p className="text-gray-600 text-sm leading-relaxed mb-6 font-serif">{article.description}</p>
+                <p className="text-gray-600 text-sm leading-relaxed mb-6 font-serif tracking-wide">{article.description}</p>
 
-                <div className="flex items-center justify-between font-sans text-black">
+                <div className="flex items-center justify-between font-sans text-black tracking-wide">
                   <div className="flex items-center gap-6">
                     <button onClick={() => handleLike(article.id)} className={`flex items-center gap-2 transition-all active:scale-90 ${article.isLiked ? 'text-blue-600' : 'text-black'}`}>
                       <ThumbsUp size={20} fill={article.isLiked ? "currentColor" : "none"} /> 
-                      <span className="text-xs font-bold">{article.likes}</span>
+                      <span className="text-xs font-bold tracking-wide">{article.likes}</span>
                     </button>
                     <button onClick={() => setArticles(prev => prev.map(a => a.id === article.id ? {...a, showCommentBox: !a.showCommentBox} : a))} className="flex items-center gap-2 text-black active:scale-90">
-                      <MessageSquare size={20} /> <span className="text-xs font-bold">{article.comments}</span>
+                      <MessageSquare size={20} /> <span className="text-xs font-bold tracking-wide">{article.comments}</span>
                     </button>
                     <button onClick={() => handleShare(article)} className="flex items-center gap-2 text-black active:scale-90">
-                      <Share2 size={20} /> <span className="text-xs font-bold">{article.shares}</span>
+                      <Share2 size={20} /> <span className="text-xs font-bold tracking-wide">{article.shares}</span>
                     </button>
                   </div>
                   <button className="p-2.5 bg-gray-50 rounded-full hover:shadow-md transition-all">
@@ -98,16 +98,16 @@ const Explore = () => {
             {article.showCommentBox && (
               <div className="mt-6 bg-[#F2F2F2] rounded-2xl p-6 transition-all">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-8 h-8 rounded-full bg-black flex items-center justify-center text-white text-[10px]">US</div>
-                  <span className="font-sans font-bold text-sm text-black">Your Account</span>
+                  <div className="w-8 h-8 rounded-full bg-black flex items-center justify-center text-white text-[10px] tracking-wide">US</div>
+                  <span className="font-sans font-bold text-sm text-black tracking-wide">Your Account</span>
                 </div>
                 <textarea 
-                  className="w-full bg-transparent border-none outline-none focus:ring-0 text-gray-700 font-serif resize-none p-0"
+                  className="w-full bg-transparent border-none outline-none focus:ring-0 text-gray-700 font-serif resize-none p-0 tracking-wide"
                   placeholder="Write a comment..." rows={2} autoFocus
                 />
                 <div className="flex justify-start items-center gap-6 mt-4">
-                  <button onClick={() => setArticles(prev => prev.map(a => a.id === article.id ? {...a, showCommentBox: false} : a))} className="text-gray-500 font-serif text-sm">Cancel</button>
-                  <button className="px-8 py-2.5 bg-[#D1D5DB] text-gray-900 rounded-full font-serif text-sm">Submit</button>
+                  <button onClick={() => setArticles(prev => prev.map(a => a.id === article.id ? {...a, showCommentBox: false} : a))} className="text-gray-500 font-serif text-sm tracking-wide">Cancel</button>
+                  <button className="px-8 py-2.5 bg-[#D1D5DB] text-gray-900 rounded-full font-serif text-sm tracking-wide">Submit</button>
                 </div>
               </div>
             )}
@@ -117,7 +117,7 @@ const Explore = () => {
 
       {hasMore && (
         <div className="flex justify-center mt-20 pb-18">
-          <button onClick={() => setCurrentPage(prev => prev + 1)} className="px-12 py-3.5 bg-black text-white rounded-xl font-serif text-lg hover:bg-gray-800 transition-all active:scale-95 shadow-xl">
+          <button onClick={() => setCurrentPage(prev => prev + 1)} className="px-12 py-3.5 bg-black text-white rounded-xl font-serif text-lg hover:bg-gray-800 transition-all active:scale-95 shadow-xl tracking-wide">
             Next Page
           </button>
         </div>

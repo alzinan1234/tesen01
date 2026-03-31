@@ -58,7 +58,6 @@ const TravelStory = ({ params }: { params: { id: string } }) => {
               Our recent expedition took us through the ancient silk routes, where we found that hospitality remains the world's most universal language. Despite the rise of mass tourism, there are still pockets of the world where time feels suspended. This story is for those who seek the path less traveled, where the destination is merely a byproduct of the journey itself.
             </p>
           </article>
-
           {/* Interaction Bar */}
           <div className="flex items-center gap-8 py-8 border-y border-gray-100 my-12 font-sans text-black">
               <div onClick={() => setIsLiked(!isLiked)} className="flex items-center gap-2 cursor-pointer group">
@@ -71,7 +70,6 @@ const TravelStory = ({ params }: { params: { id: string } }) => {
                 <Share2 size={20} className="group-hover:scale-110 transition-transform"/> 854
               </div>
           </div>
-
           {/* Comment Section */}
           <AnimatePresence>
             {showCommentBox && (

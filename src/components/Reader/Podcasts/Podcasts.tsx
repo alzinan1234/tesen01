@@ -27,8 +27,8 @@ const Podcasts = () => {
   return (
     <div className="bg-white min-h-screen pt-28 md:pt-64 pb-10">
       <div className="max-w-4xl mx-auto text-center mb-12 px-4">
-        <h1 className="text-6xl font-sans text-gray-900 mb-4 font-extrabold tracking-tight">Podcasts</h1>
-        <p className="text-gray-600 font-serif text-sm max-w-2xl mx-auto">
+        <h1 className="text-6xl font-sans text-gray-900 mb-4 font-extrabold tracking-wide">Podcasts</h1>
+        <p className="text-gray-600 font-serif text-sm max-w-2xl mx-auto tracking-wide">
           Access every OPED podcast, from politics and culture to bold opinions and real stories.
         </p>
         <div className="h-[1px] bg-gray-100 w-full mt-8"></div>
@@ -43,23 +43,23 @@ const Podcasts = () => {
                    <img src="https://ui-avatars.com/api/?name=MU&background=random" alt="author" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-sm font-bold font-sans text-gray-900">{podcast.author}</span>
-                  <span className="text-xs font-serif text-gray-400">{podcast.date}</span>
+                  <span className="text-sm font-bold font-sans text-gray-900 tracking-wide">{podcast.author}</span>
+                  <span className="text-xs font-serif text-gray-400 tracking-wide">{podcast.date}</span>
                 </div>
               </div>
 
-              <h2 className="text-2xl font-sans font-extrabold text-gray-900 mb-3">{podcast.title}</h2>
-              <p className="text-gray-500 text-sm leading-relaxed mb-8 font-serif">{podcast.description}</p>
+              <h2 className="text-2xl font-sans font-extrabold text-gray-900 mb-3 tracking-wide">{podcast.title}</h2>
+              <p className="text-gray-500 text-sm leading-relaxed mb-8 font-serif tracking-wide">{podcast.description}</p>
 
               <div className="flex flex-col gap-3 max-w-md">
                 <button 
                   style={{ background: 'linear-gradient(90deg, #343E87 12.02%, #3448D6 50%, #343E87 88.46%)' }}
-                  className="w-full py-3 text-white rounded-lg font-sans font-bold text-sm shadow-lg hover:opacity-90 transition-all"
+                  className="w-full py-3 text-white rounded-lg font-sans font-bold text-sm shadow-lg hover:opacity-90 transition-all tracking-wide"
                 >
                   Start Listening
                 </button>
                 <Link href={`/reader/podcasts/${podcast.id}`} className="w-full">
-                  <button className="w-full py-3 border border-[#3448D6] text-[#3448D6] rounded-lg font-sans font-bold text-sm hover:bg-blue-50 transition-all">
+                  <button className="w-full py-3 border border-[#3448D6] text-[#3448D6] rounded-lg font-sans font-bold text-sm hover:bg-blue-50 transition-all tracking-wide">
                     All Episodes
                   </button>
                 </Link>
@@ -77,7 +77,7 @@ const Podcasts = () => {
       </div>
 
       <div className="flex justify-center mt-12">
-        <button className="px-10 py-3 bg-black text-white rounded-xl font-sans font-bold text-sm hover:bg-gray-800 transition-all">
+        <button className="px-10 py-3 bg-black text-white rounded-xl font-sans font-bold text-sm hover:bg-gray-800 transition-all tracking-wide">
           Next Page
         </button>
       </div>
