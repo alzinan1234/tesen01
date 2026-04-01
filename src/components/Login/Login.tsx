@@ -23,7 +23,6 @@ export default function LoginPage() {
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
   });
-
   const onSubmit = async (data: LoginFormValues) => {
     // Artificial delay to simulate a network request
     await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -35,12 +34,10 @@ export default function LoginPage() {
     // For now, any valid form submission redirects to the reader page.
     router.push('/reader'); 
   };
-
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
       {/* Container */}
       <div className="w-full max-w-[592px] min-h-[775px] flex flex-col py-12 px-6 sm:px-12 bg-white">
-        
         {/* 1. Logo Section */}
         <div className="mb-12 flex justify-start gap-2">
           <img src="./oped.png" alt="Logo" className='w-[135px] h-auto'/>
@@ -55,8 +52,6 @@ export default function LoginPage() {
         {/* 3. Login Form */}
         <div className="w-full max-w-[400px]">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 font-sans">
-             
-            
             {/* Email */}
             <div className="space-y-1.5 font-sans">
               <label className="block text-sm font-bold text-gray-800">
@@ -70,7 +65,6 @@ export default function LoginPage() {
               />
               {errors.email && <p className="text-red-500 text-xs">{errors.email.message}</p>}
             </div>
-    
             {/* Password */}
             <div className="space-y-1.5">
               <label className="block text-sm font-bold text-gray-800">
@@ -93,7 +87,6 @@ export default function LoginPage() {
               </div>
               {errors.password && <p className="text-red-500 text-xs">{errors.password.message}</p>}
             </div>
-
             {/* Remember & Forgot */}
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-2 text-xs text-gray-400 cursor-pointer font-sans">
@@ -108,7 +101,6 @@ export default function LoginPage() {
                 Forgot Password?
               </Link>
             </div>
-
             {/* Login Button */}
             <button
               type="submit"
@@ -118,14 +110,12 @@ export default function LoginPage() {
               {isSubmitting ? "Processing..." : "Log In"}
             </button>
           </form>
-
           {/* 4. Updated Divider to match image */}
           <div className="flex items-center justify-center my-10 gap-4">
             <div className="flex-1 h-[1px] bg-gradient-to-r from-transparent via-gray-300 to-gray-300"></div>
             <span className="text-[12px] font-sans font-bold text-gray-400 tracking-widest">OR</span>
             <div className="flex-1 h-[1px] bg-gradient-to-l from-transparent via-gray-300 to-gray-300"></div>
           </div>
-
           {/* 5. Social Icons */}
           <div className="flex justify-center gap-6 mb-8">
             <button className="w-[44px] h-[44px] flex items-center justify-center rounded-full bg-black hover:bg-gray-900 transition-all active:scale-95 shadow-md">
@@ -135,7 +125,6 @@ export default function LoginPage() {
                 alt="Google" 
               />
             </button>
-
             <button className="w-[44px] h-[44px] flex items-center justify-center rounded-full bg-black hover:bg-gray-900 transition-all active:scale-95 shadow-md">
               <img 
                 src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" 
@@ -144,13 +133,11 @@ export default function LoginPage() {
               />
             </button>
           </div>
-
           {/* 6. Footer Links */}
           <p className="text-center text-sm text-[#2D2D2D] ">
             Don't have an account? <Link href="/signup" className="text-[#3448D6] font-serif font-bold text-[16px] ml-1">Sign Up</Link>
           </p>
         </div>
-
         {/* 7. Bottom Copyright */}
         <footer className="mt-auto pt-16 w-full flex flex-col sm:flex-row justify-between gap-2 text-[14px] text-[#2D2D2D] tracking-widest sm:text-left font-sans">
           <p>© 2026. OPED. All rights reserved.</p>

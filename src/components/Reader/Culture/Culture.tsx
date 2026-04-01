@@ -21,6 +21,7 @@ const Culture = () => {
   })));
 
   // Calculate Paginated Data
+  
   const indexOfLastArticle = currentPage * articlesPerPage;
   const currentArticles = articles.slice(0, indexOfLastArticle);
   const hasMore = indexOfLastArticle < articles.length;
@@ -50,13 +51,14 @@ const Culture = () => {
       alert("Link copied!");
     }
   };
-
+// submit thios 
   // 3. Comment Toggle & Submit
   const toggleComment = (id) => {
     setArticles(prev => prev.map(art => 
       art.id === id ? { ...art, showCommentBox: !art.showCommentBox } : art
     ));
   };
+  
 
   const submitComment = (id) => {
     setArticles(prev => prev.map(art => 
@@ -66,13 +68,13 @@ const Culture = () => {
 
   return (
     <main className="bg-white min-h-screen pt-28 md:pt-64 pb-10">
+
       {/* Header Section */}
       <div className="max-w-4xl mx-auto text-center mb-16 px-4">
         <h1 className="text-6xl font-sans text-gray-900 mb-4 font-extrabold tracking-wide">Culture</h1>
         <p className="text-black font-serif text-lg tracking-wide">Every New Yorker post.</p>
         <div className="h-[1px] bg-gray-100 w-full mt-10"></div>
       </div>
-
       {/* Articles List */}
       <div className="max-w-5xl mx-auto px-6 space-y-12">
         {currentArticles.map((article) => (
@@ -88,7 +90,6 @@ const Culture = () => {
                     <span className="text-[14px] font-serif text-gray-400 mt-1 tracking-wide">{article.date}</span>
                   </div>
                 </div>
-
                 <Link href={`/reader/culture/${article.id}`}>
                   <h2 className="text-2xl font-sans font-extrabold text-gray-900 mb-4 group-hover:text-blue-700 transition-colors cursor-pointer tracking-wide">
                     {article.title}
@@ -98,18 +99,15 @@ const Culture = () => {
                 <p className="text-gray-600 text-sm leading-relaxed mb-6 font-serif tracking-wide">
                   {article.description}
                 </p>
-
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-6">
                     <button onClick={() => handleLike(article.id)} className={`flex items-center gap-2 font-sans transition-all active:scale-90 ${article.isLiked ? 'text-blue-600' : 'text-black'}`}>
                       <ThumbsUp size={20} fill={article.isLiked ? "currentColor" : "none"} /> 
                       <span className="text-xs font-bold tracking-wide">{article.likes}</span>
                     </button>
-
                     <button onClick={() => toggleComment(article.id)} className="flex items-center gap-2 font-sans text-black transition-all active:scale-90">
                       <MessageSquare size={20} /> <span className="text-xs font-bold tracking-wide">{article.comments}</span>
                     </button>
-
                     <button onClick={() => handleShare(article)} className="flex items-center gap-2 font-sans text-black transition-all active:scale-90">
                       <Share2 size={20} /> <span className="text-xs font-bold tracking-wide">{article.shares}</span>
                     </button>
@@ -119,12 +117,10 @@ const Culture = () => {
                   </button>
                 </div>
               </div>
-            
               <Link href={`/reader/culture/${article.id}`} className="w-full md:w-[320px] h-[200px] rounded-2xl overflow-hidden order-1 md:order-2 cursor-pointer relative shadow-sm">
                 <img src={article.image} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt={article.title} />
               </Link>
             </div>
-
             {/* Comment Box */}
             {article.showCommentBox && (
               <div className="mt-6 bg-[#F2F2F2] rounded-2xl p-6 transition-all">
@@ -154,7 +150,6 @@ const Culture = () => {
           </div>
         ))}
       </div>
-
       {/* Pagination Button */}
       {hasMore && (
         <div className="flex justify-center mt-20 pb-18">
@@ -166,7 +161,6 @@ const Culture = () => {
           </button>
         </div>
       )}
-
       <UnlimitedAccess />
     </main>
   );

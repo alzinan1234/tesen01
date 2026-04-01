@@ -86,7 +86,7 @@ export default function ForgotPassword() {
           </div>
 
           <div className="max-w-[400px] w-full">
-            {/* STEP 1: REQUEST OTP */}
+          
             {step === 'email' && (
               <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
                 <div className="mb-8">
@@ -121,7 +121,6 @@ export default function ForgotPassword() {
                     Enter the verification code that we have sent to your email.
                   </p>
                 </div>
-
                 <form onSubmit={onOtpSubmit} className="space-y-8">
                   <div className="flex justify-between gap-3">
                     {otp.map((digit, idx) => (
@@ -143,14 +142,12 @@ export default function ForgotPassword() {
                       Resend code at 00:{timeLeft < 10 ? `0${timeLeft}` : timeLeft}
                     </p>
                   </div>
-
                   <button type="submit" className="w-full py-3.5 bg-gradient-to-r from-[#343E87] via-[#3448D6] to-[#343E87] text-white rounded-full font-sans font-bold shadow-lg">
                     Continue
                   </button>
                 </form>
               </div>
             )}
-
             {/* STEP 3: NEW PASSWORD */}
             {step === 'reset' && (
               <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -175,7 +172,6 @@ export default function ForgotPassword() {
                       </button>
                     </div>
                   </div>
-
                   <div className="space-y-2">
                     <label className="block text-sm font-bold text-gray-800">Confirm Password</label>
                     <div className="relative">
@@ -198,7 +194,6 @@ export default function ForgotPassword() {
               </div>
             )}
           </div>
-
           {/* Footer (Matches design exactly) */}
           <footer className="mt-auto pt-16 w-full flex flex-col sm:flex-row justify-between items-center gap-2 text-[14px] text-[#2D2D2D]  tracking-widest font-sans">
             <p>© 2026. OPED. All rights reserved.</p>

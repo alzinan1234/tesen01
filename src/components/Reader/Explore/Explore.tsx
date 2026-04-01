@@ -24,7 +24,7 @@ const Explore = () => {
 
   const handleLike = (id: string) => {
     setArticles(prev => prev.map(art => 
-      art.id === id ? { ...art, isLiked: !art.isLiked } : art
+      art.id === id ? { ...art, isLiked: !art.isLiked } : art   
     ));
   };
 
