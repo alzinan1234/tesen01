@@ -50,7 +50,7 @@ const ReaderBanner = () => {
             </div>
             <div className="flex items-center gap-2 cursor-pointer hover:text-white transition-all">
               <Share2 size={18} className="md:w-5 md:h-5" />
-              <span className="text-xs md:text-sm font-bold tracking-tighter">854</span>
+              <span className="text-xs md:text-sm font-bold tracking-tighter">850</span>
             </div>
           </div>
         </motion.div>
