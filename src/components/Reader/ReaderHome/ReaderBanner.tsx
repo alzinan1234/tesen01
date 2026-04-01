@@ -56,7 +56,7 @@ const ReaderBanner = () => {
         </motion.div>
       </div>
 
-      {/* RIGHT CONTENT - The Billboard Image */}
+  
       {/* On mobile, we give this a fixed height so it doesn't disappear, but stays proportional */}
       <div className="w-full md:w-1/2 h-[300px] sm:h-[400px] md:h-full relative">
         <motion.div 
