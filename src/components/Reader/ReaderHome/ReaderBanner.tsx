@@ -21,7 +21,6 @@ const ReaderBanner = () => {
           <h1 className="editorial-title font-sans text-[32px] sm:text-[42px] md:text-[48px] lg:text-[68px] leading-[1.1] mb-4 md:mb-6">
             Gavin Newsom Is Playing <br className="hidden sm:block" /> the Long Game
           </h1>
-
           {/* Subtext: Font size scales down for mobile */}
           <p className="text-white/80 text-sm md:text-lg lg:text-xl leading-relaxed mb-6 md:mb-8 font-serif font-light max-w-[440px]">
             As technology evolves and reader habits shift, independent platforms are 
@@ -55,8 +54,6 @@ const ReaderBanner = () => {
           </div>
         </motion.div>
       </div>
-
-  
       {/* On mobile, we give this a fixed height so it doesn't disappear, but stays proportional */}
       <div className="w-full md:w-1/2 h-[300px] sm:h-[400px] md:h-full relative">
         <motion.div 
