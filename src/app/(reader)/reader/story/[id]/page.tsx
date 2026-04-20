@@ -18,7 +18,7 @@ import {
   likeComment, dislikeComment, Comment, CommentAuthor,
 } from "@/components/socialApiClient";
 
-// ── Utilities ─────────────────────────────────────────────────
+// ── Utilities (same as ExploreStory) ─────────────────────────
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 
@@ -35,7 +35,6 @@ function getCurrentUserId(): string | null {
   return null;
 }
 
-// ── Toast config ───────────────────────────────────────────────
 const toastStyle = {
   success: {
     style: { background: "#000", color: "#fff", borderRadius: "999px", padding: "12px 20px", fontSize: "14px", fontFamily: "serif", boxShadow: "0 4px 24px rgba(0,0,0,0.12)" },
@@ -46,7 +45,7 @@ const toastStyle = {
   },
 };
 
-// ── CommentItem ────────────────────────────────────────────────
+// ── CommentItem (identical to ExploreStory) ──────────────────
 interface CommentItemProps {
   comment: Comment;
   currentUserId?: string;
@@ -226,7 +225,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
   );
 };
 
-// ── EditCommentModal ───────────────────────────────────────────
+// ── EditCommentModal (same) ──────────────────────────────────
 interface EditModalProps {
   open: boolean;
   initialContent: string;
@@ -282,8 +281,8 @@ const EditCommentModal: React.FC<EditModalProps> = ({ open, initialContent, onCo
   );
 };
 
-// ── FinanceStory ───────────────────────────────────────────────
-const FinanceStory = () => {
+// ── Main StoryDetail Component ───────────────────────────────
+const StoryDetail = () => {
   const params = useParams();
   const storyId = params?.id as string;
 
@@ -370,7 +369,6 @@ const FinanceStory = () => {
     return () => { cancelled = true; };
   }, [storyId, loadComments]);
 
-  // ── Handlers ─────────────────────────────────────────────────
   const handleSave = async () => {
     if (savingToggle) return;
     setSavingToggle(true);
@@ -392,13 +390,11 @@ const FinanceStory = () => {
     setReactionCount(c => (wasLiked ? Math.max(0, c - 1) : c + 1));
     try {
       await addReaction("story", storyId, "like");
-      try {
-        const fresh = await getMyReaction("story", storyId);
-        if (fresh.success) {
-          setMyReaction(fresh.data.myReaction ?? null);
-          setReactionCount(fresh.data.summary?.like ?? 0);
-        }
-      } catch {}
+      const fresh = await getMyReaction("story", storyId);
+      if (fresh.success) {
+        setMyReaction(fresh.data.myReaction ?? null);
+        setReactionCount(fresh.data.summary?.like ?? 0);
+      }
     } catch (err: unknown) {
       setMyReaction(wasLiked ? "like" : null);
       setReactionCount(c => (wasLiked ? c + 1 : Math.max(0, c - 1)));
@@ -494,7 +490,7 @@ const FinanceStory = () => {
     return res.data;
   };
 
-  // ── Render states ─────────────────────────────────────────────
+  // Render states
   if (loading) {
     return (
       <div className="bg-white min-h-screen flex items-center justify-center">
@@ -559,21 +555,21 @@ const FinanceStory = () => {
               Read Story <ArrowUpRight size={20} />
             </motion.a>
             <div className="flex items-center font-sans gap-10 pt-8 border-t border-white/10 w-full justify-center">
-              <button onClick={handleReaction} className={`flex items-center gap-2 cursor-pointer transition-colors ${myReaction === "like" ? "text-blue-400" : "text-white"}`} aria-label="Like story">
+              <button onClick={handleReaction} className={`flex items-center gap-2 cursor-pointer transition-colors ${myReaction === "like" ? "text-blue-400" : "text-white"}`}>
                 <ThumbsUp size={20} fill={myReaction === "like" ? "currentColor" : "none"} />
                 <span className="text-sm font-bold">{reactionCount}</span>
               </button>
               <button
                 onClick={() => { setShowCommentBox(true); setTimeout(() => document.getElementById("comment-section")?.scrollIntoView({ behavior: "smooth" }), 100); }}
-                className="flex items-center gap-2 cursor-pointer text-white" aria-label="Comments"
+                className="flex items-center gap-2 cursor-pointer text-white"
               >
                 <MessageSquare size={20} />
                 <span className="text-sm font-bold">{commentCount}</span>
               </button>
-              <button onClick={handleShare} className="flex items-center gap-2 cursor-pointer text-white" aria-label="Share">
+              <button onClick={handleShare} className="flex items-center gap-2 cursor-pointer text-white">
                 <Share2 size={20} />
               </button>
-              <button onClick={handleSave} disabled={savingToggle} className="flex items-center gap-2 cursor-pointer text-white" aria-label={isSaved ? "Unsave" : "Save"}>
+              <button onClick={handleSave} disabled={savingToggle} className="flex items-center gap-2 cursor-pointer text-white">
                 <Bookmark size={20} fill={isSaved ? "currentColor" : "none"} className={isSaved ? "text-blue-400" : "text-white"} />
               </button>
             </div>
@@ -588,10 +584,10 @@ const FinanceStory = () => {
       {/* Content */}
       <section id="content" className="max-w-6xl mx-auto px-6 py-20 flex gap-10">
         <aside className="hidden md:flex flex-col items-center gap-4 sticky top-32 h-fit">
-          <button onClick={handleSave} disabled={savingToggle} className="p-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-all" aria-label={isSaved ? "Unsave story" : "Save story"}>
+          <button onClick={handleSave} disabled={savingToggle} className="p-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-all">
             <Bookmark size={22} className={isSaved ? "text-blue-600 fill-blue-600" : "text-gray-400"} />
           </button>
-          <button onClick={handleReaction} className="p-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-all" aria-label="Like story">
+          <button onClick={handleReaction} className="p-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-all">
             <ThumbsUp size={22} className={myReaction === "like" ? "text-blue-600 fill-blue-600" : "text-gray-400"} />
           </button>
         </aside>
@@ -698,4 +694,4 @@ const FinanceStory = () => {
   );
 };
 
-export default FinanceStory;
+export default StoryDetail;

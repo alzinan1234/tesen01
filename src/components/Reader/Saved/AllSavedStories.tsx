@@ -1,35 +1,16 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay, Navigation } from "swiper/modules";
-import { Bookmark, ThumbsUp, MessageSquare, Share2, ArrowUpRight, Lock, X, Send, ChevronDown, ThumbsDown, MoreHorizontal, Edit2, Trash2, Reply } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
+import { Bookmark, ThumbsUp, MessageSquare, Share2, Lock, X, Send, ChevronDown, ThumbsDown, MoreHorizontal, Edit2, Trash2, Reply } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast, { Toaster } from "react-hot-toast";
-import Link from "next/link";
-
-// Swiper styles
-import "swiper/css";
-import "swiper/css/navigation";
 
 // API clients
-import { fetchAllLedeStories, Story } from "@/components/theLedApiClient";
-import {
-  checkSaved,
-  toggleSave,
-  addReaction,
-  getMyReaction,
-  getComments,
-  addComment,
-  editComment,
-  deleteComment,
-  likeComment,
-  dislikeComment,
-  Comment,
-  CommentAuthor,
-} from "@/components/socialApiClient";
+import { getSavedList, toggleSave, addReaction, getMyReaction, getComments, addComment, editComment, deleteComment, likeComment, dislikeComment, Comment, CommentAuthor, LibraryItem } from "@/components/socialApiClient";
+import { Story } from "@/components/theLedApiClient";
 
-// ── Helper functions (shared) ────────────────────────────────
+// ── Helper functions (same as in other components) ───────────
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 
@@ -63,7 +44,7 @@ const toastStyle = {
   },
 };
 
-// ── CommentItem (identical to ExploreStory) ──────────────────
+// ── CommentItem (same as ExploreStory) ───────────────────────
 interface CommentItemProps {
   comment: Comment;
   currentUserId?: string;
@@ -518,177 +499,136 @@ const CommentModal: React.FC<CommentModalProps> = ({ storyId, storyTitle, curren
   );
 };
 
-// ── StoryCard (with real social data) ────────────────────────
-interface StoryCardProps {
-  story: Story;
+// ── Saved Story Card (design matches The Lede) ───────────────
+interface SavedStoryCardProps {
+  item: LibraryItem;
   liked: boolean;
   likeCount: number;
-  saved: boolean;
   commentCount: number;
-  onLike: (id: string) => void;
-  onSave: (id: string) => void;
+  onLike: (storyId: string) => void;
+  onSaveToggle: (storyId: string, currentSaved: boolean) => void;
   onOpenComments: (storyId: string, title: string) => void;
   onShare: (story: Story) => void;
 }
 
-const StoryCard: React.FC<StoryCardProps> = ({
-  story, liked, likeCount, saved, commentCount,
-  onLike, onSave, onOpenComments, onShare,
+const SavedStoryCard: React.FC<SavedStoryCardProps> = ({
+  item, liked, likeCount, commentCount, onLike, onSaveToggle, onOpenComments, onShare,
 }) => {
+  const story = item.content as Story;
+
   return (
-    <div className="rounded-[20px] overflow-hidden flex flex-col border shadow-xl h-full">
-      {/* Image Container */}
-      <div className="relative p-4">
-        <div className="relative h-[200px] w-full rounded-[15px] overflow-hidden">
+    <div className="flex flex-col border-b border-gray-50 pb-12 group">
+      <div className="flex flex-col md:flex-row gap-10 items-start">
+        <div className="flex-1 order-2 md:order-1">
+          <div className="flex items-center gap-2 mb-4">
+            <img
+              src={story.author.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(story.author.name)}&background=random`}
+              className="w-8 h-8 rounded-full object-cover"
+              alt={story.author.name}
+            />
+            <div>
+              <span className="text-[15px] font-bold font-sans text-gray-900">{story.author.name}</span>
+              <p className="text-[12px] font-serif text-gray-400">{new Date(story.createdAt).toLocaleDateString()}</p>
+            </div>
+          </div>
+
+          <Link href={`/story/${story._id}`}>
+            <h2 className="text-2xl font-sans font-extrabold text-gray-900 mb-3 group-hover:text-blue-700 transition-colors tracking-wide">
+              {story.title}
+            </h2>
+          </Link>
+          <p className="text-gray-500 text-sm leading-relaxed mb-5 font-serif line-clamp-3">{story.summary}</p>
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-5">
+              <button
+                onClick={() => onLike(story._id)}
+                className={`flex items-center gap-1.5 transition-all active:scale-90 font-sans text-sm font-bold ${liked ? "text-blue-600" : "text-gray-500 hover:text-blue-600"}`}
+              >
+                <ThumbsUp size={18} fill={liked ? "currentColor" : "none"} />
+                <span>{formatCount(likeCount)}</span>
+              </button>
+              <button
+                onClick={() => onOpenComments(story._id, story.title)}
+                className="flex items-center gap-1.5 text-gray-500 hover:text-blue-600 transition-colors font-sans text-sm font-bold active:scale-90"
+              >
+                <MessageSquare size={18} />
+                <span>{formatCount(commentCount)}</span>
+              </button>
+              <button
+                onClick={() => onShare(story)}
+                className="flex items-center gap-1.5 text-gray-500 hover:text-gray-800 transition-colors active:scale-90"
+              >
+                <Share2 size={18} />
+              </button>
+            </div>
+            <button
+              onClick={() => onSaveToggle(story._id, true)}
+              className="p-2.5 bg-gray-50 rounded-full hover:shadow-md transition-all active:scale-90"
+            >
+              <Bookmark size={18} className="text-blue-600 fill-blue-600" />
+            </button>
+          </div>
+        </div>
+
+        <Link
+          href={`/story/${story._id}`}
+          className="w-full md:w-[300px] h-[180px] rounded-2xl overflow-hidden order-1 md:order-2 shadow-sm relative shrink-0"
+        >
           <img
             src={story.coverImage}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             alt={story.title}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src =
-                "https://images.unsplash.com/photo-1511715282680-fbf93a50e721?auto=format&fit=crop&q=80&w=800";
-            }}
           />
           {story.isPremium && (
             <div className="absolute top-3 left-3 flex items-center gap-1 bg-black/80 text-white text-[10px] font-bold px-2 py-1 rounded-full">
-              <Lock size={10} />
-              Premium
+              <Lock size={10} /> Premium
             </div>
           )}
-          <button
-            onClick={() => onSave(story._id)}
-            className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-md hover:bg-white transition-colors"
-          >
-            <Bookmark
-              size={16}
-              className={saved ? "text-blue-600 fill-blue-600" : "text-gray-700"}
-            />
-          </button>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="px-6 pt-2 pb-6 flex flex-col items-center text-center flex-1">
-        {/* Author */}
-        <div className="flex items-center gap-2 mb-3">
-          <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
-            <img
-              src={story.author.profileImage}
-              alt={story.author.name}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src =
-                  "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
-              }}
-            />
-          </div>
-          <span className="text-[14px] font-sans font-bold tracking-widest text-black truncate max-w-[140px]">
-            {story.author.name}
-          </span>
-        </div>
-
-        {/* Title */}
-        <h3 className="text-xl font-sans font-medium leading-tight mb-4 text-black px-2 line-clamp-2">
-          {story.title}
-        </h3>
-
-        {/* Summary */}
-        <p className="text-gray-500 text-[13px] font-serif leading-relaxed mb-4 line-clamp-3">
-          {story.summary}
-        </p>
-
-        {/* Reading time */}
-        <span className="text-[11px] text-gray-400 mb-2">
-          {story.readingTime} min read
-        </span>
-
-        {/* Read More link to detail page */}
-        <Link
-          href={`/reader/story/${story._id}`}
-          className="flex items-center gap-1 text-[#4B59B3] font-sans text-xs font-bold mb-6 hover:underline"
-        >
-          Read More <ArrowUpRight size={14} />
         </Link>
-
-        {/* Footer Stats with real data */}
-        <div className="w-full flex items-center justify-between pt-4 border-t border-gray-100 text-gray-400 mt-auto">
-          <button
-            onClick={() => onLike(story._id)}
-            className="flex items-center gap-1.5 transition-all active:scale-90"
-          >
-            <ThumbsUp
-              size={14}
-              className={liked ? "text-blue-600 fill-blue-600" : "text-black"}
-            />
-            <span className="text-[11px] font-sans font-bold text-black">
-              {formatCount(likeCount)}
-            </span>
-          </button>
-          <button
-            onClick={() => onOpenComments(story._id, story.title)}
-            className="flex items-center gap-1.5 transition-all active:scale-90"
-          >
-            <MessageSquare size={14} className="text-black" />
-            <span className="text-[11px] font-sans font-bold text-black">
-              {formatCount(commentCount)}
-            </span>
-          </button>
-          <button
-            onClick={() => onShare(story)}
-            className="flex items-center gap-1.5 transition-all active:scale-90"
-          >
-            <Share2 size={14} className="text-black" />
-            
-          </button>
-        </div>
       </div>
     </div>
   );
 };
 
-// ── Skeleton Card ────────────────────────────────────────────
+// ── Skeleton Card (matches TheLede / TodayMixCard – gray-200) ─
 const SkeletonCard = () => (
-  <div className="rounded-[20px] overflow-hidden flex flex-col border shadow-xl animate-pulse">
-    <div className="relative p-4">
-      <div className="h-[200px] w-full rounded-[15px] bg-gray-200" />
-    </div>
-    <div className="px-6 pt-2 pb-6 flex flex-col items-center gap-3">
-      <div className="flex items-center gap-2">
-        <div className="w-6 h-6 rounded-full bg-gray-200" />
-        <div className="h-3 w-24 bg-gray-200 rounded" />
+  <div className="flex flex-col border-b border-gray-100 pb-12 animate-pulse">
+    <div className="flex flex-col md:flex-row gap-10 items-start">
+      <div className="flex-1 order-2 md:order-1 space-y-3">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-gray-200" />
+          <div className="space-y-1">
+            <div className="h-3 w-24 bg-gray-200 rounded" />
+            <div className="h-2 w-16 bg-gray-200 rounded" />
+          </div>
+        </div>
+        <div className="h-5 w-3/4 bg-gray-200 rounded" />
+        <div className="h-3 w-full bg-gray-200 rounded" />
+        <div className="h-3 w-5/6 bg-gray-200 rounded" />
       </div>
-      <div className="h-4 w-full bg-gray-200 rounded" />
-      <div className="h-4 w-3/4 bg-gray-200 rounded" />
-      <div className="h-3 w-full bg-gray-100 rounded" />
-      <div className="h-3 w-5/6 bg-gray-100 rounded" />
-      <div className="h-3 w-4/6 bg-gray-100 rounded" />
-      <div className="w-full border-t border-gray-100 pt-4 flex justify-between">
-        <div className="h-3 w-10 bg-gray-200 rounded" />
-        <div className="h-3 w-10 bg-gray-200 rounded" />
-        <div className="h-3 w-10 bg-gray-200 rounded" />
-      </div>
+      <div className="w-full md:w-[300px] h-[180px] rounded-2xl bg-gray-200 order-1 md:order-2" />
     </div>
   </div>
 );
 
-// ── Main TheLede Component ───────────────────────────────────
-const TheLede = () => {
-  const [stories, setStories] = useState<Story[]>([]);
+// ── Main Component ────────────────────────────────────────────
+const AllSavedStories = () => {
+  const [savedItems, setSavedItems] = useState<LibraryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
-  // Social states per story
-  const [savedState, setSavedState] = useState<Record<string, boolean>>({});
-  const [savingState, setSavingState] = useState<Record<string, boolean>>({});
   const [likedState, setLikedState] = useState<Record<string, boolean>>({});
-  const [likingState, setLikingState] = useState<Record<string, boolean>>({});
   const [likeCount, setLikeCount] = useState<Record<string, number>>({});
   const [commentCount, setCommentCount] = useState<Record<string, number>>({});
+  const [savingState, setSavingState] = useState<Record<string, boolean>>({});
 
   const [commentModal, setCommentModal] = useState<{ storyId: string; title: string } | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | undefined>(undefined);
 
-  // Load current user
   useEffect(() => {
     try {
       const u = localStorage.getItem("oped_user");
@@ -696,20 +636,22 @@ const TheLede = () => {
     } catch {}
   }, []);
 
-  // Fetch stories and their social data
-  useEffect(() => {
-    let cancelled = false;
-    const loadStories = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await fetchAllLedeStories(1, 10);
-        if (cancelled || !res.success) return;
-        const newStories = res.data;
-        setStories(newStories);
+  const loadSaved = useCallback(async (pageNum: number, append = false) => {
+    try {
+      if (append) setLoadingMore(true);
+      const res = await getSavedList(undefined, pageNum, 10);
+      if (res.success) {
+        const newItems = res.data;
+        if (append) {
+          setSavedItems(prev => [...prev, ...newItems]);
+        } else {
+          setSavedItems(newItems);
+        }
+        setHasMore(pageNum < res.pagination.totalPages);
+        setPage(pageNum);
 
-        // For each story, fetch reaction, saved status, comment count
-        await Promise.all(newStories.map(async story => {
+        await Promise.all(newItems.map(async (item) => {
+          const story = item.content as Story;
           const sid = story._id;
           try {
             const r = await getMyReaction("story", sid);
@@ -719,32 +661,28 @@ const TheLede = () => {
             }
           } catch {}
           try {
-            const r = await checkSaved(sid, "saved");
-            if (r.success) setSavedState(p => ({ ...p, [sid]: r.data.isSaved }));
-          } catch {}
-          try {
             const r = await getComments("story", sid, 1, 1);
             if (r.success) setCommentCount(p => ({ ...p, [sid]: r.pagination.total }));
           } catch {}
         }));
-      } catch (err: any) {
-        if (!cancelled) setError(err?.message ?? "Failed to load stories.");
-      } finally {
-        if (!cancelled) setLoading(false);
       }
-    };
-    loadStories();
-    return () => { cancelled = true; };
+    } catch (err: any) {
+      setError(err.message || "Failed to load saved stories");
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
   }, []);
 
-  // Like handler
+  useEffect(() => {
+    loadSaved(1);
+  }, [loadSaved]);
+
   const handleLike = async (storyId: string) => {
-    if (likingState[storyId]) return;
     const was = !!likedState[storyId];
     const prevCount = likeCount[storyId] ?? 0;
     setLikedState(p => ({ ...p, [storyId]: !was }));
     setLikeCount(p => ({ ...p, [storyId]: was ? Math.max(0, prevCount - 1) : prevCount + 1 }));
-    setLikingState(p => ({ ...p, [storyId]: true }));
     try {
       await addReaction("story", storyId, "like");
       const fresh = await getMyReaction("story", storyId);
@@ -756,30 +694,25 @@ const TheLede = () => {
       setLikedState(p => ({ ...p, [storyId]: was }));
       setLikeCount(p => ({ ...p, [storyId]: prevCount }));
       toast.error(e.message || "Failed to react. Please login.", toastStyle.error);
-    } finally {
-      setLikingState(p => ({ ...p, [storyId]: false }));
     }
   };
 
-  // Save handler
-  const handleSave = async (storyId: string) => {
+  const handleSaveToggle = async (storyId: string) => {
     if (savingState[storyId]) return;
-    const was = !!savedState[storyId];
-    setSavedState(p => ({ ...p, [storyId]: !was }));
     setSavingState(p => ({ ...p, [storyId]: true }));
     try {
       const res = await toggleSave("story", storyId, "saved");
-      setSavedState(p => ({ ...p, [storyId]: res.data.isSaved }));
-      toast.success(res.data.isSaved ? "Story saved!" : "Removed from saved.", toastStyle.success);
+      if (!res.data.isSaved) {
+        setSavedItems(prev => prev.filter(item => (item.content as Story)._id !== storyId));
+        toast.success("Removed from saved.", toastStyle.success);
+      }
     } catch (e: any) {
-      setSavedState(p => ({ ...p, [storyId]: was }));
-      toast.error(e.message || "Failed to save. Please login.", toastStyle.error);
+      toast.error(e.message || "Failed to update save status.", toastStyle.error);
     } finally {
       setSavingState(p => ({ ...p, [storyId]: false }));
     }
   };
 
-  // Share handler (no count)
   const handleShare = async (story: Story) => {
     const url = `${window.location.origin}/story/${story._id}`;
     if (navigator.share) {
@@ -790,10 +723,20 @@ const TheLede = () => {
     }
   };
 
-  const skeletonCount = 4;
+  if (loading && page === 1) {
+    return (
+      <div className="max-w-5xl mx-auto px-6 pt-28 pb-20 space-y-12">
+        {Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)}
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div className="text-center text-red-500 py-20">{error}</div>;
+  }
 
   return (
-    <section className="py-16 px-4 md:px-10 bg-white">
+    <div className="bg-white min-h-screen pt-28 pb-20">
       <Toaster position="bottom-center" />
 
       <AnimatePresence>
@@ -807,73 +750,54 @@ const TheLede = () => {
         )}
       </AnimatePresence>
 
-      <div className="text-center mb-12">
-        <h2 className="text-[42px] md:text-[54px] font-sans text-gray-900">The Lede</h2>
+      <div className="max-w-4xl mx-auto text-center mb-16 px-4 pt-25">
+        <h1 className="text-6xl font-sans text-gray-900 mb-4 font-extrabold tracking-wide">Saved Stories</h1>
+        <p className="text-black font-serif text-lg tracking-wide">
+          These stories are saved to your account, so you can revisit them anytime.
+        </p>
+        <div className="h-[1px] bg-gray-100 w-full mt-10" />
       </div>
 
-      {error && <p className="text-center text-red-500 text-sm mb-6">{error}</p>}
-
-      <div className="relative max-w-7xl mx-auto py-10">
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {Array.from({ length: skeletonCount }).map((_, i) => (
-              <SkeletonCard key={i} />
-            ))}
+      <div className="max-w-5xl mx-auto px-6 space-y-12">
+        {savedItems.length === 0 ? (
+          <div className="text-center py-20">
+            <Bookmark size={48} className="mx-auto text-gray-300 mb-4" />
+            <p className="text-gray-400 text-lg font-serif">No saved stories yet.</p>
+            <p className="text-gray-400 text-sm font-serif mt-2">Start saving stories you love to see them here.</p>
           </div>
-        ) : stories.length === 0 ? (
-          <p className="text-center text-gray-400 text-sm py-10">No stories found.</p>
         ) : (
-          <>
-            <Swiper
-              modules={[Autoplay, Navigation]}
-              spaceBetween={24}
-              slidesPerView={1}
-              loop={stories.length > 1}
-              autoplay={{ delay: 3000, disableOnInteraction: false }}
-              navigation={{
-                nextEl: ".swiper-button-next-custom",
-                prevEl: ".swiper-button-prev-custom",
-              }}
-              breakpoints={{
-                640: { slidesPerView: 2 },
-                1024: { slidesPerView: 3 },
-                1280: { slidesPerView: 4 },
-              }}
-              className="pb-10"
-            >
-              {stories.map((story) => (
-                <SwiperSlide key={story._id}>
-                  <StoryCard
-                    story={story}
-                    liked={likedState[story._id] || false}
-                    likeCount={likeCount[story._id] ?? 0}
-                    saved={savedState[story._id] || false}
-                    commentCount={commentCount[story._id] ?? 0}
-                    onLike={handleLike}
-                    onSave={handleSave}
-                    onOpenComments={(sid, title) => setCommentModal({ storyId: sid, title })}
-                    onShare={handleShare}
-                  />
-                </SwiperSlide>
-              ))}
-            </Swiper>
+          savedItems.map((item) => {
+            const story = item.content as Story;
+            return (
+              <SavedStoryCard
+                key={item.libraryId}
+                item={item}
+                liked={likedState[story._id] || false}
+                likeCount={likeCount[story._id] ?? 0}
+                commentCount={commentCount[story._id] ?? 0}
+                onLike={handleLike}
+                onSaveToggle={handleSaveToggle}
+                onOpenComments={(sid, title) => setCommentModal({ storyId: sid, title })}
+                onShare={handleShare}
+              />
+            );
+          })
+        )}
 
-            {/* Custom Navigation Buttons */}
-            <button className="swiper-button-prev-custom absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-gray-400/50 hover:bg-gray-600 text-white rounded-full flex items-center justify-center transition-all">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="m15 18-6-6 6-6" />
-              </svg>
+        {hasMore && (
+          <div className="flex justify-center mt-8 pb-10">
+            <button
+              onClick={() => loadSaved(page + 1, true)}
+              disabled={loadingMore}
+              className="px-10 py-3 bg-black text-white rounded-xl font-serif hover:bg-gray-800 transition-all active:scale-95 shadow-lg tracking-wide"
+            >
+              {loadingMore ? "Loading..." : "Load More"}
             </button>
-            <button className="swiper-button-next-custom absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-gray-400/50 hover:bg-gray-600 text-white rounded-full flex items-center justify-center transition-all">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="m9 18 6-6-6-6" />
-              </svg>
-            </button>
-          </>
+          </div>
         )}
       </div>
-    </section>
+    </div>
   );
 };
 
-export default TheLede;
+export default AllSavedStories;
