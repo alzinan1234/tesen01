@@ -68,7 +68,7 @@ export const WRITER_PROFILE: ProfileEndpoints = {
 export const PROFILE_ENDPOINTS = (role: Role): ProfileEndpoints =>
   role === "writer" ? WRITER_PROFILE : READER_PROFILE;
 
-// ── Story Endpoints ────────────────────────────────────────
+// ── Story Endpoints (reader) ───────────────────────────────
 export const READER_STORIES = {
   GET_ALL: "/api/v1/story/reader/all",
   GET_DETAIL: (id: string) => `/api/v1/story/reader/detail/${id}`,
@@ -76,7 +76,7 @@ export const READER_STORIES = {
 
 export const STORY_ENDPOINTS = { READER: READER_STORIES } as const;
 
-// ── Podcast Endpoints ──────────────────────────────────────
+// ── Podcast Endpoints (reader) ─────────────────────────────
 export const READER_PODCASTS = {
   GET_ALL: "/api/v1/podcast/reader/all",
   GET_DETAIL: (id: string) => `/api/v1/podcast/reader/detail/${id}`,
@@ -99,16 +99,10 @@ export const REACTION_ENDPOINTS = {
   GET_BY_CONTENT: (contentType: string, contentId: string) =>
     `/api/v1/react/${contentType}/${contentId}`,
   GET_MY_REACTION: (contentType: string, contentId: string) =>
-    `/api/v1/react/story/${contentId}`,
+    `/api/v1/react/${contentType}/${contentId}`,
 };
 
 // ── Library ────────────────────────────────────────────────
-// POST   /api/v1/library/toggle         { contentType, contentId, listType }
-// GET    /api/v1/library/check?contentId=...&listType=saved  → { isSaved, listType }
-// GET    /api/v1/library/saved?contentType=story&page=1&limit=10
-// GET    /api/v1/library/read-later?contentType=podcast&page=1&limit=10
-// GET    /api/v1/library/user
-// DELETE /api/v1/library/remove/:libraryId
 export const LIBRARY_ENDPOINTS = {
   TOGGLE: "/api/v1/library/toggle",
   CHECK: "/api/v1/library/check",
@@ -117,6 +111,25 @@ export const LIBRARY_ENDPOINTS = {
   GET_USER_LIBRARY: "/api/v1/library/user",
   REMOVE: (libraryId: string) => `/api/v1/library/remove/${libraryId}`,
 };
+
+// ── Writer Create Endpoints ────────────────────────────────
+export const WRITER_CREATE = {
+  STORY: "/api/v1/story/writer/create",
+  PODCAST: "/api/v1/podcast/writer/create",
+  LIVE_NEWS: "/api/v1/live-news/writer/post",
+} as const;
+
+// ── Writer Podcast Endpoints (list & detail) ───────────────
+export const WRITER_PODCAST_ENDPOINTS = {
+  GET_ALL: "/api/v1/podcast/writer/my-podcasts",
+  GET_DETAIL: (id: string) => `/api/v1/podcast/writer/my-podcasts/${id}`,
+} as const;
+
+// ── Writer Story Endpoints (list & detail) ─────────────────
+export const WRITER_STORY_ENDPOINTS = {
+  GET_ALL: "/api/v1/story/writer/my-stories",
+  GET_DETAIL: (id: string) => `/api/v1/story/writer/my-stories/${id}`,
+} as const;
 
 // ── Shared types ───────────────────────────────────────────
 export type ContentType = "story" | "podcast";
