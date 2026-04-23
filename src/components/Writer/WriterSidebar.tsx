@@ -19,7 +19,7 @@ const navItems = [
   { name: "Write", href: "/writer/write", icon: PenTool },
   { name: "Podcast", href: "/writer/podcast", icon: Mic2 },
   { name: "Save & Draft", href: "/writer/drafts", icon: Bookmark },
-  { name: "Profile & Settings", href: "/writer/settings", icon: UserCog },
+  // { name: "Profile & Settings", href: "/writer/settings", icon: UserCog },
 ];
 
 const WriterSidebar = ({ isOpen, setIsOpen }) => {
@@ -76,11 +76,11 @@ const WriterSidebar = ({ isOpen, setIsOpen }) => {
 
         {/* Separator Line from Image */}
         <div className="px-6 my-4">
-            <div className="h-[1px] bg-gray-100 w-full"></div>
+            {/* <div className="h-[1px] bg-gray-100 w-full"></div> */}
         </div>
 
         {/* Logout Button Footer */}
-        <div className="px-4 pb-10">
+        {/* <div className="px-4 pb-10">
           <button 
             className={`flex items-center h-14 w-full text-[#FF4D4D] rounded-xl transition-all group relative ${
                 !isOpen ? "justify-center" : "px-4"
@@ -96,7 +96,7 @@ const WriterSidebar = ({ isOpen, setIsOpen }) => {
               Logout
             </span>
           </button>
-        </div>
+        </div> */}
       </div>
     </aside>
   );

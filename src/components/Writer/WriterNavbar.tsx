@@ -7,6 +7,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Bell, ChevronDown, User, FileText, Settings, LogOut } from "lucide-react";
 import { tokenManager, logout } from "../apiClient";
 import { UserProfile } from "../apiClient";
+import NotificationBell from "../Reader/NotificationBell";
+ // ← Import the notification component
 
 // ── Account Dropdown ──────────────────────────────────────────
 
@@ -38,14 +40,14 @@ const AccountDropdown: React.FC<AccountDropdownProps> = ({ user, onLogout, onClo
         className="flex items-center gap-3 px-4 py-2.5 text-[13px] font-bold text-gray-700 hover:bg-gray-50 hover:text-[#3448D6] transition-colors" style={{ fontFamily: 'serif' }}>
         <User size={15} /> My Account
       </Link>
-      <Link href="/writer/articles" onClick={onClose}
+      {/* <Link href="/writer/articles" onClick={onClose}
         className="flex items-center gap-3 px-4 py-2.5 text-[13px] font-bold text-gray-700 hover:bg-gray-50 hover:text-[#3448D6] transition-colors" style={{ fontFamily: 'serif' }}>
         <FileText size={15} /> My Articles
-      </Link>
-      <Link href="/writer/settings" onClick={onClose}
+      </Link> */}
+      {/* <Link href="/writer/settings" onClick={onClose}
         className="flex items-center gap-3 px-4 py-2.5 text-[13px] font-bold text-gray-700 hover:bg-gray-50 hover:text-[#3448D6] transition-colors" style={{ fontFamily: 'serif' }}>
         <Settings size={15} /> Settings
-      </Link>
+      </Link> */}
     </div>
 
     {/* Logout */}
@@ -64,7 +66,6 @@ const WriterNavbar: React.FC = () => {
   const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
   const [isLoggedIn,   setIsLoggedIn]   = useState<boolean>(false);
   const [user,         setUser]         = useState<UserProfile | null>(null);
-  const [hasNotif,     setHasNotif]     = useState<boolean>(true); // notification dot
 
   const router      = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -94,6 +95,7 @@ const WriterNavbar: React.FC = () => {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+  
   // ── Logout ────────────────────────────────────────────────
   const handleLogout = async () => {
     setDropdownOpen(false);
@@ -169,16 +171,10 @@ const WriterNavbar: React.FC = () => {
             </Link>
           )}
 
-          {/* Notification Bell */}
-          <button
-            onClick={() => setHasNotif(false)}
-            className="p-2 hover:bg-gray-50 rounded-full transition-colors relative"
-          >
-            <Bell size={28} strokeWidth={1.5} className="text-black" />
-            {hasNotif && (
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
-            )}
-          </button>
+          {/* Notification Bell - Using the same component as ReaderNavbar */}
+          {isLoggedIn && (
+            <NotificationBell className="" />
+          )}
         </div>
       </div>
     </nav>

@@ -690,17 +690,17 @@ const BlogProfile = () => {
 
       {/* Profile Header */}
       <header className="flex flex-col md:flex-row items-center md:items-start gap-8 pb-12 border-b border-gray-100">
-        <div className="w-36 h-36 rounded-full overflow-hidden flex-shrink-0 bg-blue-50 relative">
+        {/* <div className="w-36 h-36 rounded-full overflow-hidden flex-shrink-0 bg-blue-50 relative">
           <div className="absolute inset-0 bg-blue-400/20 mix-blend-overlay"></div>
           <img
             src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=400"
             alt="Writer"
             className="w-full h-full object-cover"
           />
-        </div>
+        </div> */}
         <div className="flex-1 text-center md:text-left">
-          <h1 className="text-4xl font-sans font-bold text-black mb-4 tracking-tight">Your Stories</h1>
-          <p className="text-black text-[15px] leading-relaxed font-serif max-w-2xl">
+          <h1 className="text-5xl font-sans font-bold text-black mb-4 tracking-tight text-center">Your Stories</h1>
+          <p className="text-black text-[15px] leading-relaxed font-serif max-w-2xl text-center mx-auto">
             Manage your submitted stories. Filter by status or category, and see how your audience is engaging.
           </p>
         </div>

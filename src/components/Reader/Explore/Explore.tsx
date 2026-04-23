@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   Bookmark, ThumbsUp, ThumbsDown, MessageSquare, Share2,
   Lock, Send, X, MoreHorizontal, Trash2, Edit2, Reply,
@@ -13,7 +13,7 @@ import toast, { Toaster } from "react-hot-toast";
 
 import UnlimitedAccess from "../ReaderHome/UnlimitedAccess";
 import { Story } from "@/components/theLedApiClient";
-import { fetchStories } from "@/components/storyApiClient";
+import { fetchStories, fetchStoryDetail } from "@/components/storyApiClient";
 import {
   checkSaved,
   toggleSave,
@@ -76,51 +76,53 @@ const SkeletonCard = () => (
   </div>
 );
 
-// ── CommentItem ───────────────────────────────────────────────
+// ── CommentItem (same as BlogProfile) ─────────────────────────
 interface CommentItemProps {
   comment: Comment;
   currentUserId?: string;
-  onReply: (parentId: string, content: string) => Promise<void>;
-  onEdit: (id: string, content: string) => void;
-  onDelete: (id: string) => void;
-  onLike: (id: string) => Promise<{ likesCount: number; dislikesCount: number }>;
-  onDislike: (id: string) => Promise<{ likesCount: number; dislikesCount: number }>;
+  onReplySubmit: (parentId: string, content: string) => Promise<void>;
+  onEdit: (commentId: string, oldContent: string) => Promise<void>;
+  onDelete: (commentId: string) => Promise<void>;
+  onLike: (commentId: string) => Promise<{ likesCount: number; dislikesCount: number }>;
+  onDislike: (commentId: string) => Promise<{ likesCount: number; dislikesCount: number }>;
   level?: number;
 }
 
 const CommentItem: React.FC<CommentItemProps> = ({
-  comment, currentUserId, onReply, onEdit, onDelete, onLike, onDislike, level = 0,
+  comment, currentUserId, onReplySubmit, onEdit, onDelete, onLike, onDislike, level = 0,
 }) => {
   const author = resolveAuthor(comment.author);
   const isOwner = !!currentUserId && currentUserId === author._id;
+
   const [showMenu, setShowMenu] = useState(false);
-  const [showReply, setShowReply] = useState(false);
+  const [showReplyBox, setShowReplyBox] = useState(false);
   const [replyText, setReplyText] = useState("");
-  const [postingReply, setPostingReply] = useState(false);
-  const [likes, setLikes] = useState(comment.likesCount ?? 0);
-  const [dislikes, setDislikes] = useState(comment.dislikesCount ?? 0);
+  const [submittingReply, setSubmittingReply] = useState(false);
+  const [localLikes, setLocalLikes] = useState(comment.likesCount ?? 0);
+  const [localDislikes, setLocalDislikes] = useState(comment.dislikesCount ?? 0);
   const [liking, setLiking] = useState(false);
   const [disliking, setDisliking] = useState(false);
+
   const menuRef = useRef<HTMLDivElement>(null);
   const replyRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    const h = (e: MouseEvent) => {
+    const handler = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) setShowMenu(false);
     };
-    document.addEventListener("mousedown", h);
-    return () => document.removeEventListener("mousedown", h);
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  useEffect(() => { if (showReply) replyRef.current?.focus(); }, [showReply]);
+  useEffect(() => { if (showReplyBox) replyRef.current?.focus(); }, [showReplyBox]);
 
   const handleLike = async () => {
     if (liking) return;
     setLiking(true);
     try {
       const res = await onLike(comment._id);
-      setLikes(res.likesCount);
-      setDislikes(res.dislikesCount);
+      setLocalLikes(res.likesCount);
+      setLocalDislikes(res.dislikesCount);
     } finally { setLiking(false); }
   };
 
@@ -129,23 +131,27 @@ const CommentItem: React.FC<CommentItemProps> = ({
     setDisliking(true);
     try {
       const res = await onDislike(comment._id);
-      setLikes(res.likesCount);
-      setDislikes(res.dislikesCount);
+      setLocalLikes(res.likesCount);
+      setLocalDislikes(res.dislikesCount);
     } finally { setDisliking(false); }
   };
 
   const handleReply = async () => {
     if (!replyText.trim()) return;
-    setPostingReply(true);
-    await onReply(comment._id, replyText.trim());
-    setReplyText("");
-    setShowReply(false);
-    setPostingReply(false);
+    setSubmittingReply(true);
+    try {
+      await onReplySubmit(comment._id, replyText.trim());
+      setReplyText("");
+      setShowReplyBox(false);
+    } finally { setSubmittingReply(false); }
   };
 
   return (
     <div className={`flex gap-3 mb-5 ${level > 0 ? "ml-10 pl-4 border-l-2 border-gray-100" : ""}`}>
-      <img src={avatar(author)} className="w-9 h-9 rounded-full object-cover shrink-0 mt-0.5" alt={author.name} />
+      <img
+        src={avatar(author)}
+        className="w-9 h-9 rounded-full object-cover shrink-0 mt-0.5" alt={author.name}
+      />
       <div className="flex-1 min-w-0">
         <div className="bg-gray-50 rounded-2xl px-4 py-3">
           <div className="flex justify-between items-start gap-2">
@@ -164,14 +170,18 @@ const CommentItem: React.FC<CommentItemProps> = ({
                       initial={{ opacity: 0, scale: 0.9, y: -4 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.9, y: -4 }}
-                      className="absolute right-0 mt-1 w-36 bg-white shadow-xl rounded-xl border border-gray-100 z-30 overflow-hidden"
+                      className="absolute right-0 mt-1 w-36 bg-white shadow-xl rounded-xl border border-gray-100 z-20 overflow-hidden"
                     >
-                      <button onClick={() => { setShowMenu(false); onEdit(comment._id, comment.content); }}
-                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 w-full transition-colors">
+                      <button
+                        onClick={() => { setShowMenu(false); onEdit(comment._id, comment.content); }}
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 w-full transition-colors"
+                      >
                         <Edit2 size={13} /> Edit
                       </button>
-                      <button onClick={() => { setShowMenu(false); onDelete(comment._id); }}
-                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 w-full transition-colors">
+                      <button
+                        onClick={() => { setShowMenu(false); onDelete(comment._id); }}
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 w-full transition-colors"
+                      >
                         <Trash2 size={13} /> Delete
                       </button>
                     </motion.div>
@@ -185,20 +195,20 @@ const CommentItem: React.FC<CommentItemProps> = ({
 
         <div className="flex items-center gap-5 mt-1.5 ml-1 text-xs text-gray-500 select-none">
           <button onClick={handleLike} disabled={liking} className="flex items-center gap-1.5 hover:text-blue-600 transition-colors">
-            <ThumbsUp size={12} /><span>{likes}</span>
+            <ThumbsUp size={12} /><span>{localLikes}</span>
           </button>
           <button onClick={handleDislike} disabled={disliking} className="flex items-center gap-1.5 hover:text-red-500 transition-colors">
-            <ThumbsDown size={12} /><span>{dislikes}</span>
+            <ThumbsDown size={12} /><span>{localDislikes}</span>
           </button>
           {level === 0 && (
-            <button onClick={() => setShowReply(v => !v)} className="flex items-center gap-1.5 hover:text-black transition-colors font-medium">
+            <button onClick={() => setShowReplyBox(v => !v)} className="flex items-center gap-1.5 hover:text-black transition-colors font-medium">
               <Reply size={12} />Reply
             </button>
           )}
         </div>
 
         <AnimatePresence>
-          {showReply && (
+          {showReplyBox && (
             <motion.div
               initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
               className="mt-3 flex gap-2 overflow-hidden"
@@ -213,16 +223,16 @@ const CommentItem: React.FC<CommentItemProps> = ({
                   onChange={e => setReplyText(e.target.value)}
                   onKeyDown={e => {
                     if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleReply();
-                    if (e.key === "Escape") setShowReply(false);
+                    if (e.key === "Escape") setShowReplyBox(false);
                   }}
                 />
                 <div className="flex items-center gap-4 mt-2">
-                  <button onClick={() => setShowReply(false)} className="text-gray-500 font-serif text-xs hover:text-gray-800 transition-colors">Cancel</button>
+                  <button onClick={() => setShowReplyBox(false)} className="text-gray-500 font-serif text-xs hover:text-gray-800 transition-colors">Cancel</button>
                   <button
-                    onClick={handleReply} disabled={postingReply || !replyText.trim()}
+                    onClick={handleReply} disabled={submittingReply || !replyText.trim()}
                     className="px-4 py-1.5 bg-black text-white rounded-full font-serif text-xs flex items-center gap-1.5 disabled:opacity-40 hover:bg-gray-800 transition-colors"
                   >
-                    {postingReply ? "Posting…" : <><Send size={10} /> Post</>}
+                    {submittingReply ? "Posting…" : <><Send size={11} /> Post</>}
                   </button>
                 </div>
               </div>
@@ -230,33 +240,38 @@ const CommentItem: React.FC<CommentItemProps> = ({
           )}
         </AnimatePresence>
 
-        {comment.replies?.map(r => (
-          <CommentItem
-            key={r._id} comment={r} currentUserId={currentUserId}
-            onReply={onReply} onEdit={onEdit} onDelete={onDelete}
-            onLike={onLike} onDislike={onDislike} level={level + 1}
-          />
-        ))}
+        {comment.replies && comment.replies.length > 0 && (
+          <div className="mt-3">
+            {comment.replies.map(reply => (
+              <CommentItem
+                key={reply._id} comment={reply} currentUserId={currentUserId}
+                onReplySubmit={onReplySubmit} onEdit={onEdit} onDelete={onDelete}
+                onLike={onLike} onDislike={onDislike} level={level + 1}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-// ── Edit Modal ────────────────────────────────────────────────
-const EditModal: React.FC<{
+// ── EditCommentModal ─────────────────────────────────────────
+const EditCommentModal: React.FC<{
   open: boolean;
-  content: string;
-  onSave: (c: string) => Promise<void>;
+  initialContent: string;
+  onConfirm: (newContent: string) => Promise<void>;
   onClose: () => void;
-}> = ({ open, content, onSave, onClose }) => {
-  const [text, setText] = useState(content);
+}> = ({ open, initialContent, onConfirm, onClose }) => {
+  const [text, setText] = useState(initialContent);
   const [saving, setSaving] = useState(false);
-  useEffect(() => { setText(content); }, [content, open]);
 
-  const save = async () => {
-    if (!text.trim() || text.trim() === content) { onClose(); return; }
+  useEffect(() => { setText(initialContent); }, [initialContent, open]);
+
+  const handleSave = async () => {
+    if (!text.trim() || text.trim() === initialContent) { onClose(); return; }
     setSaving(true);
-    try { await onSave(text.trim()); } finally { setSaving(false); }
+    try { await onConfirm(text.trim()); } finally { setSaving(false); }
   };
 
   return (
@@ -282,7 +297,7 @@ const EditModal: React.FC<{
             <div className="flex justify-end gap-3 mt-4">
               <button onClick={onClose} className="px-6 py-2 rounded-full text-sm font-serif text-gray-600 hover:bg-gray-100 transition-colors">Cancel</button>
               <button
-                onClick={save} disabled={saving || !text.trim()}
+                onClick={handleSave} disabled={saving || !text.trim()}
                 className="px-8 py-2 bg-black text-white rounded-full text-sm font-serif disabled:opacity-40 hover:bg-gray-800 transition-colors"
               >
                 {saving ? "Saving…" : "Save"}
@@ -295,7 +310,7 @@ const EditModal: React.FC<{
   );
 };
 
-// ── Comment Modal ─────────────────────────────────────────────
+// ── CommentModal (same as BlogProfile) ────────────────────────
 interface CommentModalProps {
   storyId: string;
   storyTitle: string;
@@ -405,18 +420,15 @@ const CommentModal: React.FC<CommentModalProps> = ({ storyId, storyTitle, curren
           </div>
         </div>
       ),
-      {
-        duration: 6000,
-        style: { borderRadius: "16px", padding: "16px 20px", boxShadow: "0 4px 24px rgba(0,0,0,0.10)" },
-      }
+      { duration: 6000, style: { borderRadius: "16px", padding: "16px 20px", boxShadow: "0 4px 24px rgba(0,0,0,0.10)" } }
     );
   };
 
   return (
     <>
-      <EditModal
-        open={editModal.open} content={editModal.content}
-        onSave={handleEditSave} onClose={() => setEditModal({ open: false, id: "", content: "" })}
+      <EditCommentModal
+        open={editModal.open} initialContent={editModal.content}
+        onConfirm={handleEditSave} onClose={() => setEditModal({ open: false, id: "", content: "" })}
       />
       <motion.div
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -454,7 +466,7 @@ const CommentModal: React.FC<CommentModalProps> = ({ storyId, storyTitle, curren
                 {comments.map(c => (
                   <CommentItem
                     key={c._id} comment={c} currentUserId={currentUserId}
-                    onReply={handleReply} onEdit={handleEditOpen} onDelete={handleDelete}
+                    onReplySubmit={handleReply} onEdit={handleEditOpen} onDelete={handleDelete}
                     onLike={handleLike} onDislike={handleDislike}
                   />
                 ))}
@@ -522,6 +534,7 @@ const CommentModal: React.FC<CommentModalProps> = ({ storyId, storyTitle, curren
 // ── Main Explore Component ─────────────────────────────────────
 const Explore = () => {
   const params = useParams();
+  const router = useRouter();
   const category = (params?.category as string) || "explore";
 
   const [stories, setStories] = useState<Story[]>([]);
@@ -650,6 +663,14 @@ const Explore = () => {
     }
   };
 
+  const handleStoryClick = (story: Story) => {
+    if (story.isPremium) {
+      router.push("/reader/subscribe");
+    } else {
+      router.push(`/reader/${category}/${story._id}`);
+    }
+  };
+
   return (
     <main className="bg-white min-h-screen pt-28 md:pt-64 pb-10">
       <Toaster position="bottom-center" />
@@ -689,11 +710,14 @@ const Explore = () => {
                     </div>
                   </div>
 
-                  <Link href={`/reader/${category}/${story._id}`}>
+                  <div onClick={() => handleStoryClick(story)} className="cursor-pointer">
                     <h2 className="text-2xl font-sans font-extrabold text-gray-900 mb-3 group-hover:text-blue-700 transition-colors tracking-wide">
                       {story.title}
+                      {story.isPremium && (
+                        <span className="inline-block ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full align-middle">Premium</span>
+                      )}
                     </h2>
-                  </Link>
+                  </div>
                   <p className="text-gray-500 text-sm leading-relaxed mb-5 font-serif line-clamp-3">{story.summary}</p>
 
                   <div className="flex items-center justify-between">
@@ -730,15 +754,14 @@ const Explore = () => {
                   </div>
                 </div>
 
-                <Link href={`/reader/${category}/${story._id}`}
-                  className="w-full md:w-[300px] h-[180px] rounded-2xl overflow-hidden order-1 md:order-2 shadow-sm relative shrink-0">
+                <div onClick={() => handleStoryClick(story)} className="cursor-pointer w-full md:w-[300px] h-[180px] rounded-2xl overflow-hidden order-1 md:order-2 shadow-sm relative shrink-0">
                   <img src={story.coverImage} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt={story.title} />
                   {story.isPremium && (
                     <div className="absolute top-3 left-3 flex items-center gap-1 bg-black/80 text-white text-[10px] font-bold px-2 py-1 rounded-full">
                       <Lock size={10} /> Premium
                     </div>
                   )}
-                </Link>
+                </div>
               </div>
             </div>
           ))

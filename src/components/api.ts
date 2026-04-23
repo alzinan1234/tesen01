@@ -112,6 +112,14 @@ export const LIBRARY_ENDPOINTS = {
   REMOVE: (libraryId: string) => `/api/v1/library/remove/${libraryId}`,
 };
 
+// ── Notification Endpoints ─────────────────────────────────
+export const NOTIFICATION_ENDPOINTS = {
+  GET_ALL:       "/api/v1/notification",
+  MARK_READ:     (id: string) => `/api/v1/notification/${id}/read`,
+  MARK_ALL_READ: "/api/v1/notification/read-all",
+  DELETE:        (id: string) => `/api/v1/notification/${id}`,
+} as const;
+
 // ── Writer Create Endpoints ────────────────────────────────
 export const WRITER_CREATE = {
   STORY: "/api/v1/story/writer/create",
@@ -123,6 +131,10 @@ export const WRITER_CREATE = {
 export const WRITER_PODCAST_ENDPOINTS = {
   GET_ALL: "/api/v1/podcast/writer/my-podcasts",
   GET_DETAIL: (id: string) => `/api/v1/podcast/writer/my-podcasts/${id}`,
+} as const;
+
+export const READER_LIVE_NEWS = {
+  GET_LIVE_NEWS: "/api/v1/live-news/reader/all",
 } as const;
 
 // ── Writer Story Endpoints (list & detail) ─────────────────
