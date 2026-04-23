@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   Bookmark, ThumbsUp, ThumbsDown, MessageSquare, Share2,
   Send, ArrowUpRight, Lock, MoreHorizontal, Edit2, Trash2,
-  Reply, X, ChevronDown,
+  Reply, X, ChevronDown, Crown,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -44,6 +44,125 @@ const toastStyle = {
   error: {
     style: { background: "#fff", color: "#ef4444", borderRadius: "999px", padding: "12px 20px", fontSize: "14px", fontFamily: "serif", border: "1px solid #fecaca", boxShadow: "0 4px 24px rgba(0,0,0,0.08)" },
   },
+};
+
+// ── Premium Modal Component ───────────────────────────────────
+interface PremiumModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubscribe: () => void;
+}
+
+const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, onSubscribe }) => {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md px-4"
+          onClick={(e) => e.target === e.currentTarget && onClose()}
+        >
+          <motion.div
+            initial={{ scale: 0.9, y: 20, opacity: 0 }}
+            animate={{ scale: 1, y: 0, opacity: 1 }}
+            exit={{ scale: 0.9, y: 20, opacity: 0 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl"
+          >
+            {/* Premium Header */}
+            <div className="relative bg-gradient-to-br from-[#343E87] via-[#3448D6] to-[#343E87] pt-8 pb-12 px-6 text-center">
+              <div className="absolute top-4 right-4">
+                <button
+                  onClick={onClose}
+                  className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+                >
+                  <X size={16} className="text-white" />
+                </button>
+              </div>
+              <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Crown size={40} className="text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-2">Premium Content</h2>
+              <p className="text-white/80 text-sm">
+                This content is only available for premium subscribers.
+              </p>
+            </div>
+
+            {/* Content */}
+            <div className="p-6">
+              <p className="text-gray-700 text-center mb-6 font-serif leading-relaxed">
+                Would you like to subscribe to access all premium content?
+              </p>
+
+              {/* Benefits */}
+              <div className="space-y-3 mb-8">
+                <div className="flex items-center gap-3 text-sm text-gray-600">
+                  <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
+                    <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span>Unlimited access to all premium articles</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm text-gray-600">
+                  <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
+                    <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span>Exclusive opinions & long-form content</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm text-gray-600">
+                  <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
+                    <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span>Save articles & personalized recommendations</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm text-gray-600">
+                  <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
+                    <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span>Cancel anytime</span>
+                </div>
+              </div>
+
+              {/* Price */}
+              <div className="text-center mb-6">
+                <span className="text-3xl font-bold text-gray-900">$9.99</span>
+                <span className="text-gray-500">/month</span>
+                <p className="text-xs text-gray-400 mt-1">or $89.99/year (Save 20%)</p>
+              </div>
+
+              {/* Buttons */}
+              <div className="space-y-3">
+                <button
+                  onClick={onSubscribe}
+                  className="w-full py-3 rounded-xl text-white font-semibold transition-all hover:shadow-lg active:scale-[0.98]"
+                  style={{
+                    background: "linear-gradient(90deg, #343E87 12.02%, #3448D6 50%, #343E87 88.46%)"
+                  }}
+                >
+                  SUBSCRIBE NOW
+                </button>
+                <button
+                  onClick={onClose}
+                  className="w-full py-3 rounded-xl border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-all"
+                >
+                  MAYBE LATER
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 };
 
 // ── CommentItem ────────────────────────────────────────────────
@@ -285,12 +404,13 @@ const EditCommentModal: React.FC<EditModalProps> = ({ open, initialContent, onCo
 // ── ExploreStory ───────────────────────────────────────────────
 const ExploreStory = () => {
   const params = useParams();
+  const router = useRouter();
   const storyId = params?.id as string;
 
   const [story, setStory] = useState<Story | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isPremiumLocked, setIsPremiumLocked] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
 
   const [isSaved, setIsSaved] = useState(false);
   const [savingToggle, setSavingToggle] = useState(false);
@@ -340,6 +460,23 @@ const ExploreStory = () => {
       try {
         const storyRes = await fetchStoryDetail(storyId);
         if (cancelled) return;
+        
+        console.log("Story response:", storyRes); // Debug log
+        
+        // Check if story is premium - show modal, DO NOT redirect immediately
+        if (storyRes.isPremium === true) {
+          setShowPremiumModal(true);
+          setLoading(false);
+          return;
+        }
+        
+        // Also check subscriptionRequired flag
+        if (storyRes.subscriptionRequired === true) {
+          setShowPremiumModal(true);
+          setLoading(false);
+          return;
+        }
+        
         if (storyRes.success && storyRes.data) {
           setStory(storyRes.data);
           const [checkRes, reactRes] = await Promise.allSettled([
@@ -355,10 +492,8 @@ const ExploreStory = () => {
           await loadComments(1);
           const freshId = getCurrentUserId();
           if (freshId && !cancelled) setCurrentUserId(freshId);
-        } else if (storyRes.subscriptionRequired) {
-          setIsPremiumLocked(true);
-        } else {
-          setError(storyRes.message || "Failed to load story");
+        } else if (storyRes.message) {
+          setError(storyRes.message);
         }
       } catch (err: unknown) {
         if (!cancelled) setError((err as Error).message || "Something went wrong");
@@ -371,6 +506,11 @@ const ExploreStory = () => {
   }, [storyId, loadComments]);
 
   // ── Handlers ─────────────────────────────────────────────────
+  const handleSubscribeRedirect = () => {
+    setShowPremiumModal(false);
+    router.push("/reader/subscribe");
+  };
+
   const handleSave = async () => {
     if (savingToggle) return;
     setSavingToggle(true);
@@ -495,6 +635,8 @@ const ExploreStory = () => {
   };
 
   // ── Render states ─────────────────────────────────────────────
+  
+  // Show loading
   if (loading) {
     return (
       <div className="bg-white min-h-screen flex items-center justify-center">
@@ -506,194 +648,197 @@ const ExploreStory = () => {
     );
   }
 
-  if (isPremiumLocked) {
-    return (
-      <main className="bg-white min-h-screen">
-        <section className="relative w-full min-h-[80vh] flex flex-col md:flex-row bg-black pt-20 md:pt-24 overflow-hidden">
-          <div className="w-full flex items-center justify-center bg-black text-white px-6 py-20 z-10">
-            <div className="max-w-[540px] text-center flex flex-col items-center">
-              <Lock size={48} className="mb-6 text-gray-400" />
-              <h1 className="font-sans text-[40px] md:text-[68px] leading-[1.1] mb-6">Premium Content</h1>
-              <p className="text-white/70 text-lg mb-8 font-serif font-light">This story is available only for our subscribers.</p>
-              <Link href="/reader/subscribe">
-                <motion.button whileHover={{ scale: 1.05 }} className="px-8 py-3 bg-gradient-to-r from-[#343E87] via-[#3448D6] to-[#343E87] text-white rounded-full font-bold shadow-lg">
-                  Subscribe to Read
-                </motion.button>
-              </Link>
-            </div>
-          </div>
-        </section>
-      </main>
-    );
-  }
-
+  // Show error
   if (error) {
     return (
       <div className="bg-white min-h-screen flex items-center justify-center">
-        <p className="text-red-500 font-serif">{error}</p>
+        <div className="text-center">
+          <p className="text-red-500 font-serif mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-6 py-2 bg-black text-white rounded-full text-sm font-serif hover:bg-gray-800"
+          >
+            Try Again
+          </button>
+        </div>
       </div>
     );
   }
 
-  if (!story) return null;
-
+  // Show nothing while modal is open (modal will be shown)
+  // But we still need to render the modal
   return (
     <main className="bg-white min-h-screen">
       <Toaster position="bottom-center" />
 
-      <EditCommentModal
-        open={editModal.open} initialContent={editModal.content}
-        onConfirm={handleEditConfirm} onClose={() => setEditModal({ open: false, id: "", content: "" })}
+      {/* Premium Modal - Always shown when showPremiumModal is true */}
+      <PremiumModal
+        isOpen={showPremiumModal}
+        onClose={() => {
+          setShowPremiumModal(false);
+          router.back(); // Go back to previous page
+        }}
+        onSubscribe={handleSubscribeRedirect}
       />
 
-      {/* Hero */}
-      <section className="relative w-full min-h-[80vh] md:h-screen flex flex-col md:flex-row bg-black pt-20 md:pt-24 overflow-hidden">
-        <div className="w-full md:w-1/2 flex items-center justify-center bg-black text-white px-6 py-12 lg:px-20 z-10">
-          <motion.div
-            initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}
-            className="max-w-[540px] text-center flex flex-col items-center"
-          >
-            <h1 className="font-sans text-[32px] md:text-[60px] leading-[1.1] mb-6 font-extrabold">{story.title}</h1>
-            <p className="text-white/70 text-base md:text-lg mb-8 font-serif font-light leading-relaxed">{story.summary}</p>
-            <motion.a href="#content" whileHover={{ scale: 1.05 }} className="flex items-center gap-2 font-sans text-[#3448D6] font-bold text-lg mb-12">
-              Read Story <ArrowUpRight size={20} />
-            </motion.a>
-            <div className="flex items-center font-sans gap-10 pt-8 border-t border-white/10 w-full justify-center">
-              <button onClick={handleReaction} className={`flex items-center gap-2 cursor-pointer transition-colors ${myReaction === "like" ? "text-blue-400" : "text-white"}`} aria-label="Like story">
-                <ThumbsUp size={20} fill={myReaction === "like" ? "currentColor" : "none"} />
-                <span className="text-sm font-bold">{reactionCount}</span>
-              </button>
-              <button
-                onClick={() => { setShowCommentBox(true); setTimeout(() => document.getElementById("comment-section")?.scrollIntoView({ behavior: "smooth" }), 100); }}
-                className="flex items-center gap-2 cursor-pointer text-white" aria-label="Comments"
+      {/* Only show story content if not premium locked and story exists */}
+      {story && !showPremiumModal && (
+        <>
+          <EditCommentModal
+            open={editModal.open} initialContent={editModal.content}
+            onConfirm={handleEditConfirm} onClose={() => setEditModal({ open: false, id: "", content: "" })}
+          />
+
+          {/* Hero */}
+          <section className="relative w-full min-h-[80vh] md:h-screen flex flex-col md:flex-row bg-black pt-20 md:pt-24 overflow-hidden">
+            <div className="w-full md:w-1/2 flex items-center justify-center bg-black text-white px-6 py-12 lg:px-20 z-10">
+              <motion.div
+                initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}
+                className="max-w-[540px] text-center flex flex-col items-center"
               >
-                <MessageSquare size={20} />
-                <span className="text-sm font-bold">{commentCount}</span>
-              </button>
-              <button onClick={handleShare} className="flex items-center gap-2 cursor-pointer text-white" aria-label="Share">
-                <Share2 size={20} />
-              </button>
-              <button onClick={handleSave} disabled={savingToggle} className="flex items-center gap-2 cursor-pointer text-white" aria-label={isSaved ? "Unsave" : "Save"}>
-                <Bookmark size={20} fill={isSaved ? "currentColor" : "none"} className={isSaved ? "text-blue-400" : "text-white"} />
-              </button>
+                <h1 className="font-sans text-[32px] md:text-[60px] leading-[1.1] mb-6 font-extrabold">{story.title}</h1>
+                <p className="text-white/70 text-base md:text-lg mb-8 font-serif font-light leading-relaxed">{story.summary}</p>
+                <motion.a href="#content" whileHover={{ scale: 1.05 }} className="flex items-center gap-2 font-sans text-[#3448D6] font-bold text-lg mb-12">
+                  Read Story <ArrowUpRight size={20} />
+                </motion.a>
+                <div className="flex items-center font-sans gap-10 pt-8 border-t border-white/10 w-full justify-center">
+                  <button onClick={handleReaction} className={`flex items-center gap-2 cursor-pointer transition-colors ${myReaction === "like" ? "text-blue-400" : "text-white"}`} aria-label="Like story">
+                    <ThumbsUp size={20} fill={myReaction === "like" ? "currentColor" : "none"} />
+                    <span className="text-sm font-bold">{reactionCount}</span>
+                  </button>
+                  <button
+                    onClick={() => { setShowCommentBox(true); setTimeout(() => document.getElementById("comment-section")?.scrollIntoView({ behavior: "smooth" }), 100); }}
+                    className="flex items-center gap-2 cursor-pointer text-white" aria-label="Comments"
+                  >
+                    <MessageSquare size={20} />
+                    <span className="text-sm font-bold">{commentCount}</span>
+                  </button>
+                  <button onClick={handleShare} className="flex items-center gap-2 cursor-pointer text-white" aria-label="Share">
+                    <Share2 size={20} />
+                  </button>
+                  <button onClick={handleSave} disabled={savingToggle} className="flex items-center gap-2 cursor-pointer text-white" aria-label={isSaved ? "Unsave" : "Save"}>
+                    <Bookmark size={20} fill={isSaved ? "currentColor" : "none"} className={isSaved ? "text-blue-400" : "text-white"} />
+                  </button>
+                </div>
+              </motion.div>
             </div>
-          </motion.div>
-        </div>
-        <div className="w-full md:w-1/2 h-[300px] md:h-full relative">
-          <img src={story.coverImage} className="w-full h-full object-cover" alt={story.title} />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent md:bg-gradient-to-r md:from-black/40" />
-        </div>
-      </section>
-
-      {/* Content */}
-      <section id="content" className="max-w-6xl mx-auto px-6 py-20 flex gap-10">
-        <aside className="hidden md:flex flex-col items-center gap-4 sticky top-32 h-fit">
-          <button onClick={handleSave} disabled={savingToggle} className="p-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-all" aria-label={isSaved ? "Unsave story" : "Save story"}>
-            <Bookmark size={22} className={isSaved ? "text-blue-600 fill-blue-600" : "text-gray-400"} />
-          </button>
-          <button onClick={handleReaction} className="p-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-all" aria-label="Like story">
-            <ThumbsUp size={22} className={myReaction === "like" ? "text-blue-600 fill-blue-600" : "text-gray-400"} />
-          </button>
-        </aside>
-
-        <div className="flex-1 min-w-0">
-          <article className="prose prose-lg max-w-none text-black leading-loose mb-12">
-            {story.content?.split("\n\n").map((para, idx) => (
-              <p key={idx} className="mb-6 font-serif text-lg text-gray-800 leading-relaxed">{para}</p>
-            ))}
-          </article>
-
-          <div className="flex items-center gap-8 py-8 border-y border-gray-100 mb-12 font-sans text-black">
-            <button onClick={handleReaction} className={`flex items-center gap-2 cursor-pointer transition-colors ${myReaction === "like" ? "text-blue-600" : "text-gray-600 hover:text-black"}`}>
-              <ThumbsUp size={20} fill={myReaction === "like" ? "currentColor" : "none"} />
-              <span className="text-sm font-bold">{reactionCount}</span>
-            </button>
-            <button onClick={() => setShowCommentBox(v => !v)} className={`flex items-center gap-2 cursor-pointer transition-colors ${showCommentBox ? "text-blue-600" : "text-gray-600 hover:text-black"}`}>
-              <MessageSquare size={20} />
-              <span className="text-sm font-bold">{commentCount}</span>
-            </button>
-            <button onClick={handleShare} className="flex items-center gap-2 cursor-pointer text-gray-600 hover:text-black transition-colors">
-              <Share2 size={20} />
-            </button>
-          </div>
-
-          {/* Comment Section */}
-          <div id="comment-section">
-            <AnimatePresence>
-              {showCommentBox && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-                  className="mb-8 flex gap-4"
-                >
-                  <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center text-white text-xs font-bold shrink-0 select-none">US</div>
-                  <div className="flex-1 bg-[#F2F2F2] rounded-2xl p-6">
-                    <textarea
-                      autoFocus
-                      className="w-full bg-transparent border-none outline-none focus:ring-0 text-black font-serif min-h-[80px] resize-none placeholder:text-gray-400"
-                      placeholder="Write a comment…"
-                      value={newComment}
-                      onChange={e => setNewComment(e.target.value)}
-                      onKeyDown={e => {
-                        if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submitTopComment();
-                        if (e.key === "Escape") setShowCommentBox(false);
-                      }}
-                    />
-                    <div className="flex justify-start gap-6 mt-4">
-                      <button onClick={() => setShowCommentBox(false)} className="text-gray-500 font-serif text-sm font-medium hover:text-gray-800 transition-colors">Cancel</button>
-                      <button
-                        onClick={submitTopComment} disabled={submitting || !newComment.trim()}
-                        className="bg-black text-white px-8 py-2.5 rounded-full font-serif text-sm flex items-center gap-2 disabled:opacity-40 hover:bg-gray-800 transition-colors"
-                      >
-                        {submitting ? "Posting…" : "Post"} <Send size={14} />
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-sans font-extrabold text-black tracking-wide">
-                Comments <span className="text-gray-400 font-normal text-base">({commentCount})</span>
-              </h3>
-              {!showCommentBox && (
-                <button onClick={() => setShowCommentBox(true)} className="px-5 py-2 bg-black text-white rounded-full text-sm font-serif hover:bg-gray-800 transition-colors">
-                  Add comment
-                </button>
-              )}
+            <div className="w-full md:w-1/2 h-[300px] md:h-full relative">
+              <img src={story.coverImage} className="w-full h-full object-cover" alt={story.title} />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent md:bg-gradient-to-r md:from-black/40" />
             </div>
+          </section>
 
-            {comments.length === 0 ? (
-              <div className="text-center py-12">
-                <MessageSquare size={32} className="mx-auto text-gray-200 mb-3" />
-                <p className="text-gray-400 font-serif">No comments yet. Be the first!</p>
-              </div>
-            ) : (
-              <div className="space-y-1">
-                {comments.map(comment => (
-                  <CommentItem
-                    key={comment._id} comment={comment} currentUserId={currentUserId || undefined}
-                    onReplySubmit={handleReplySubmit} onEdit={handleEditRequest}
-                    onDelete={handleDelete} onLike={handleLikeComment} onDislike={handleDislikeComment}
-                  />
+          {/* Content */}
+          <section id="content" className="max-w-6xl mx-auto px-6 py-20 flex gap-10">
+            <aside className="hidden md:flex flex-col items-center gap-4 sticky top-32 h-fit">
+              <button onClick={handleSave} disabled={savingToggle} className="p-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-all" aria-label={isSaved ? "Unsave story" : "Save story"}>
+                <Bookmark size={22} className={isSaved ? "text-blue-600 fill-blue-600" : "text-gray-400"} />
+              </button>
+              <button onClick={handleReaction} className="p-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-all" aria-label="Like story">
+                <ThumbsUp size={22} className={myReaction === "like" ? "text-blue-600 fill-blue-600" : "text-gray-400"} />
+              </button>
+            </aside>
+
+            <div className="flex-1 min-w-0">
+              <article className="prose prose-lg max-w-none text-black leading-loose mb-12">
+                {story.content?.split("\n\n").map((para, idx) => (
+                  <p key={idx} className="mb-6 font-serif text-lg text-gray-800 leading-relaxed">{para}</p>
                 ))}
-              </div>
-            )}
+              </article>
 
-            {hasMoreComments && (
-              <div className="mt-6 text-center">
-                <button
-                  onClick={() => loadComments(commentsPage + 1, true)} disabled={loadingMoreComments}
-                  className="flex items-center gap-2 mx-auto text-sm text-gray-500 hover:text-black transition-colors font-serif disabled:opacity-50"
-                >
-                  {loadingMoreComments ? <div className="w-4 h-4 border border-gray-400 border-t-transparent rounded-full animate-spin" /> : <ChevronDown size={16} />}
-                  {loadingMoreComments ? "Loading…" : "Load more comments"}
+              <div className="flex items-center gap-8 py-8 border-y border-gray-100 mb-12 font-sans text-black">
+                <button onClick={handleReaction} className={`flex items-center gap-2 cursor-pointer transition-colors ${myReaction === "like" ? "text-blue-600" : "text-gray-600 hover:text-black"}`}>
+                  <ThumbsUp size={20} fill={myReaction === "like" ? "currentColor" : "none"} />
+                  <span className="text-sm font-bold">{reactionCount}</span>
+                </button>
+                <button onClick={() => setShowCommentBox(v => !v)} className={`flex items-center gap-2 cursor-pointer transition-colors ${showCommentBox ? "text-blue-600" : "text-gray-600 hover:text-black"}`}>
+                  <MessageSquare size={20} />
+                  <span className="text-sm font-bold">{commentCount}</span>
+                </button>
+                <button onClick={handleShare} className="flex items-center gap-2 cursor-pointer text-gray-600 hover:text-black transition-colors">
+                  <Share2 size={20} />
                 </button>
               </div>
-            )}
-          </div>
-        </div>
-      </section>
+
+              {/* Comment Section */}
+              <div id="comment-section">
+                <AnimatePresence>
+                  {showCommentBox && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                      className="mb-8 flex gap-4"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center text-white text-xs font-bold shrink-0 select-none">US</div>
+                      <div className="flex-1 bg-[#F2F2F2] rounded-2xl p-6">
+                        <textarea
+                          autoFocus
+                          className="w-full bg-transparent border-none outline-none focus:ring-0 text-black font-serif min-h-[80px] resize-none placeholder:text-gray-400"
+                          placeholder="Write a comment…"
+                          value={newComment}
+                          onChange={e => setNewComment(e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submitTopComment();
+                            if (e.key === "Escape") setShowCommentBox(false);
+                          }}
+                        />
+                        <div className="flex justify-start gap-6 mt-4">
+                          <button onClick={() => setShowCommentBox(false)} className="text-gray-500 font-serif text-sm font-medium hover:text-gray-800 transition-colors">Cancel</button>
+                          <button
+                            onClick={submitTopComment} disabled={submitting || !newComment.trim()}
+                            className="bg-black text-white px-8 py-2.5 rounded-full font-serif text-sm flex items-center gap-2 disabled:opacity-40 hover:bg-gray-800 transition-colors"
+                          >
+                            {submitting ? "Posting…" : "Post"} <Send size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-sans font-extrabold text-black tracking-wide">
+                    Comments <span className="text-gray-400 font-normal text-base">({commentCount})</span>
+                  </h3>
+                  {!showCommentBox && (
+                    <button onClick={() => setShowCommentBox(true)} className="px-5 py-2 bg-black text-white rounded-full text-sm font-serif hover:bg-gray-800 transition-colors">
+                      Add comment
+                    </button>
+                  )}
+                </div>
+
+                {comments.length === 0 ? (
+                  <div className="text-center py-12">
+                    <MessageSquare size={32} className="mx-auto text-gray-200 mb-3" />
+                    <p className="text-gray-400 font-serif">No comments yet. Be the first!</p>
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    {comments.map(comment => (
+                      <CommentItem
+                        key={comment._id} comment={comment} currentUserId={currentUserId || undefined}
+                        onReplySubmit={handleReplySubmit} onEdit={handleEditRequest}
+                        onDelete={handleDelete} onLike={handleLikeComment} onDislike={handleDislikeComment}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {hasMoreComments && (
+                  <div className="mt-6 text-center">
+                    <button
+                      onClick={() => loadComments(commentsPage + 1, true)} disabled={loadingMoreComments}
+                      className="flex items-center gap-2 mx-auto text-sm text-gray-500 hover:text-black transition-colors font-serif disabled:opacity-50"
+                    >
+                      {loadingMoreComments ? <div className="w-4 h-4 border border-gray-400 border-t-transparent rounded-full animate-spin" /> : <ChevronDown size={16} />}
+                      {loadingMoreComments ? "Loading…" : "Load more comments"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+        </>
+      )}
     </main>
   );
 };

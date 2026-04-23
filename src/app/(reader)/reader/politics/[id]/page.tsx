@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   Bookmark, ThumbsUp, ThumbsDown, MessageSquare, Share2,
   Send, ArrowUpRight, Lock, MoreHorizontal, Edit2, Trash2,
@@ -285,6 +285,7 @@ const EditCommentModal: React.FC<EditModalProps> = ({ open, initialContent, onCo
 // ── PoliticsStory ───────────────────────────────────────────────
 const PoliticsStory = () => {
   const params = useParams();
+  const router = useRouter();
   const storyId = params?.id as string;
 
   const [story, setStory] = useState<Story | null>(null);
@@ -340,6 +341,13 @@ const PoliticsStory = () => {
       try {
         const storyRes = await fetchStoryDetail(storyId);
         if (cancelled) return;
+        
+        // ✅ Check if story is premium and redirect
+        if (storyRes.isPremium === true && storyRes.subscriptionRequired === true) {
+          router.push("/reader/subscribe");
+          return;
+        }
+        
         if (storyRes.success && storyRes.data) {
           setStory(storyRes.data);
           const [checkRes, reactRes] = await Promise.allSettled([
@@ -355,8 +363,9 @@ const PoliticsStory = () => {
           await loadComments(1);
           const freshId = getCurrentUserId();
           if (freshId && !cancelled) setCurrentUserId(freshId);
-        } else if (storyRes.subscriptionRequired) {
-          setIsPremiumLocked(true);
+        } else if (storyRes.subscriptionRequired || storyRes.isPremium) {
+          router.push("/reader/subscribe");
+          return;
         } else {
           setError(storyRes.message || "Failed to load story");
         }
@@ -368,7 +377,7 @@ const PoliticsStory = () => {
     };
     load();
     return () => { cancelled = true; };
-  }, [storyId, loadComments]);
+  }, [storyId, loadComments, router]);
 
   // ── Handlers ─────────────────────────────────────────────────
   const handleSave = async () => {

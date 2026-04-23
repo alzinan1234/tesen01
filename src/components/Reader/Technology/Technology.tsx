@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Bookmark, ThumbsUp, ThumbsDown, MessageSquare, Share2,
   Lock, Send, X, MoreHorizontal, Trash2, Edit2, Reply,
-  ChevronDown,
+  ChevronDown, Crown,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast, { Toaster } from "react-hot-toast";
@@ -52,6 +53,82 @@ const toastStyle = {
   error: {
     style: { background: "#fff", color: "#ef4444", borderRadius: "999px", padding: "12px 20px", fontSize: "14px", fontFamily: "serif", border: "1px solid #fecaca", boxShadow: "0 4px 24px rgba(0,0,0,0.08)" },
   },
+};
+
+// ── Premium Modal Component ───────────────────────────────────
+interface PremiumModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubscribe: () => void;
+}
+
+const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, onSubscribe }) => {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md px-4"
+          onClick={(e) => e.target === e.currentTarget && onClose()}
+        >
+          <motion.div
+            initial={{ scale: 0.9, y: 20, opacity: 0 }}
+            animate={{ scale: 1, y: 0, opacity: 1 }}
+            exit={{ scale: 0.9, y: 20, opacity: 0 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl"
+          >
+            {/* Premium Header */}
+            <div className="relative bg-gradient-to-br from-[#343E87] via-[#3448D6] to-[#343E87] pt-8 pb-12 px-6 text-center">
+              <div className="absolute top-4 right-4">
+                <button
+                  onClick={onClose}
+                  className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+                >
+                  <X size={16} className="text-white" />
+                </button>
+              </div>
+              <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Crown size={40} className="text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-2">Premium Content</h2>
+              <p className="text-white/80 text-sm">
+                This content is only available for premium subscribers.
+              </p>
+            </div>
+
+            {/* Content - Simplified */}
+            <div className="p-6">
+              <p className="text-gray-700 text-center mb-8 font-serif leading-relaxed">
+                Would you like to subscribe to access all premium content?
+              </p>
+
+              {/* Buttons */}
+              <div className="space-y-3">
+                <button
+                  onClick={onSubscribe}
+                  className="w-full py-3 rounded-xl text-white font-semibold transition-all hover:shadow-lg active:scale-[0.98]"
+                  style={{
+                    background: "linear-gradient(90deg, #343E87 12.02%, #3448D6 50%, #343E87 88.46%)"
+                  }}
+                >
+                  SUBSCRIBE NOW
+                </button>
+                <button
+                  onClick={onClose}
+                  className="w-full py-3 rounded-xl border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-all"
+                >
+                  MAYBE LATER
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 };
 
 // ── Skeleton Card ─────────────────────────────────────────────────
@@ -520,6 +597,7 @@ const CommentModal: React.FC<CommentModalProps> = ({ storyId, storyTitle, curren
 
 // ── Main Technology Component (static category) ─────────────────────
 const Technology = () => {
+  const router = useRouter();
   const category = "technology"; // fixed category
 
   const [stories, setStories] = useState<Story[]>([]);
@@ -527,6 +605,10 @@ const Technology = () => {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+
+  // Premium modal state
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [pendingStory, setPendingStory] = useState<Story | null>(null);
 
   const [savedState, setSavedState] = useState<Record<string, boolean>>({});
   const [savingState, setSavingState] = useState<Record<string, boolean>>({});
@@ -648,9 +730,37 @@ const Technology = () => {
     }
   };
 
+  // Handle story click with premium modal
+  const handleStoryClick = (story: Story, e: React.MouseEvent) => {
+    e.preventDefault();
+    if (story.isPremium) {
+      setPendingStory(story);
+      setShowPremiumModal(true);
+    } else {
+      router.push(`/reader/technology/${story._id}`);
+    }
+  };
+
+  const handleSubscribeRedirect = () => {
+    setShowPremiumModal(false);
+    router.push("/reader/subscribe");
+  };
+
+  const handleModalClose = () => {
+    setShowPremiumModal(false);
+    setPendingStory(null);
+  };
+
   return (
     <main className="bg-white min-h-screen pt-28 md:pt-64 pb-10">
       <Toaster position="bottom-center" />
+
+      {/* Premium Modal */}
+      <PremiumModal
+        isOpen={showPremiumModal}
+        onClose={handleModalClose}
+        onSubscribe={handleSubscribeRedirect}
+      />
 
       <AnimatePresence>
         {commentModal && (
@@ -687,11 +797,14 @@ const Technology = () => {
                     </div>
                   </div>
 
-                  <Link href={`/reader/technology/${story._id}`}>
+                  <div onClick={(e) => handleStoryClick(story, e)} className="cursor-pointer">
                     <h2 className="text-2xl font-sans font-extrabold text-gray-900 mb-3 group-hover:text-blue-700 transition-colors tracking-wide">
                       {story.title}
+                      {story.isPremium && (
+                        <span className="inline-block ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full align-middle">Premium</span>
+                      )}
                     </h2>
-                  </Link>
+                  </div>
                   <p className="text-gray-500 text-sm leading-relaxed mb-5 font-serif line-clamp-3">{story.summary}</p>
 
                   <div className="flex items-center justify-between">
@@ -728,15 +841,17 @@ const Technology = () => {
                   </div>
                 </div>
 
-                <Link href={`/reader/technology/${story._id}`}
-                  className="w-full md:w-[300px] h-[180px] rounded-2xl overflow-hidden order-1 md:order-2 shadow-sm relative shrink-0">
+                <div 
+                  onClick={(e) => handleStoryClick(story, e)}
+                  className="cursor-pointer w-full md:w-[300px] h-[180px] rounded-2xl overflow-hidden order-1 md:order-2 shadow-sm relative shrink-0"
+                >
                   <img src={story.coverImage} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt={story.title} />
                   {story.isPremium && (
                     <div className="absolute top-3 left-3 flex items-center gap-1 bg-black/80 text-white text-[10px] font-bold px-2 py-1 rounded-full">
                       <Lock size={10} /> Premium
                     </div>
                   )}
-                </Link>
+                </div>
               </div>
             </div>
           ))

@@ -3,9 +3,10 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation } from "swiper/modules";
-import { Bookmark, ThumbsUp, MessageSquare, Share2, ArrowUpRight, Lock, X, Send, ChevronDown, ThumbsDown, MoreHorizontal, Edit2, Trash2, Reply } from "lucide-react";
+import { Bookmark, ThumbsUp, MessageSquare, Share2, ArrowUpRight, Lock, X, Send, ChevronDown, ThumbsDown, MoreHorizontal, Edit2, Trash2, Reply, Crown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast, { Toaster } from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 // Import Swiper styles
 import "swiper/css";
@@ -54,6 +55,82 @@ const toastStyle = {
   error: {
     style: { background: "#fff", color: "#ef4444", borderRadius: "999px", padding: "12px 20px", fontSize: "14px", fontFamily: "serif", border: "1px solid #fecaca", boxShadow: "0 4px 24px rgba(0,0,0,0.08)" },
   },
+};
+
+// ── Premium Modal Component ───────────────────────────────────
+interface PremiumModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubscribe: () => void;
+}
+
+const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, onSubscribe }) => {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md px-4"
+          onClick={(e) => e.target === e.currentTarget && onClose()}
+        >
+          <motion.div
+            initial={{ scale: 0.9, y: 20, opacity: 0 }}
+            animate={{ scale: 1, y: 0, opacity: 1 }}
+            exit={{ scale: 0.9, y: 20, opacity: 0 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl"
+          >
+            {/* Premium Header */}
+            <div className="relative bg-gradient-to-br from-[#343E87] via-[#3448D6] to-[#343E87] pt-8 pb-12 px-6 text-center">
+              <div className="absolute top-4 right-4">
+                <button
+                  onClick={onClose}
+                  className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+                >
+                  <X size={16} className="text-white" />
+                </button>
+              </div>
+              <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Crown size={40} className="text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-2">Premium Content</h2>
+              <p className="text-white/80 text-sm">
+                This content is only available for premium subscribers.
+              </p>
+            </div>
+
+            {/* Content - Simplified */}
+            <div className="p-6">
+              <p className="text-gray-700 text-center mb-8 font-serif leading-relaxed">
+                Would you like to subscribe to access all premium content?
+              </p>
+
+              {/* Buttons */}
+              <div className="space-y-3">
+                <button
+                  onClick={onSubscribe}
+                  className="w-full py-3 rounded-xl text-white font-semibold transition-all hover:shadow-lg active:scale-[0.98]"
+                  style={{
+                    background: "linear-gradient(90deg, #343E87 12.02%, #3448D6 50%, #343E87 88.46%)"
+                  }}
+                >
+                  SUBSCRIBE NOW
+                </button>
+                <button
+                  onClick={onClose}
+                  className="w-full py-3 rounded-xl border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-all"
+                >
+                  MAYBE LATER
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 };
 
 // ── CommentItem component (same as in Explore) ────────────────
@@ -513,9 +590,14 @@ const CommentModal: React.FC<CommentModalProps> = ({ storyId, storyTitle, curren
 
 // ── Main TodayMixCard Component ──────────────────────────────
 const TodayMixCard = () => {
+  const router = useRouter();
   const [stories, setStories] = useState<Story[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Premium modal state
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [pendingStory, setPendingStory] = useState<Story | null>(null);
 
   // Social states per story
   const [savedState, setSavedState] = useState<Record<string, boolean>>({});
@@ -631,11 +713,39 @@ const TodayMixCard = () => {
     }
   };
 
+  // Handle story click with premium modal
+  const handleStoryClick = (story: Story, e: React.MouseEvent) => {
+    e.preventDefault();
+    if (story.isPremium) {
+      setPendingStory(story);
+      setShowPremiumModal(true);
+    } else {
+      router.push(`/reader/story/${story._id}`);
+    }
+  };
+
+  const handleSubscribeRedirect = () => {
+    setShowPremiumModal(false);
+    router.push("/reader/subscribe");
+  };
+
+  const handleModalClose = () => {
+    setShowPremiumModal(false);
+    setPendingStory(null);
+  };
+
   const skeletonCount = 4;
 
   return (
     <section className="py-16 px-4 md:px-10 bg-white">
       <Toaster position="bottom-center" />
+
+      {/* Premium Modal */}
+      <PremiumModal
+        isOpen={showPremiumModal}
+        onClose={handleModalClose}
+        onSubscribe={handleSubscribeRedirect}
+      />
 
       <AnimatePresence>
         {commentModal && (
@@ -685,7 +795,10 @@ const TodayMixCard = () => {
                   <div className="rounded-[20px] overflow-hidden flex flex-col border shadow-xl">
                     {/* Image Container */}
                     <div className="relative p-4">
-                      <div className="relative h-[200px] w-full rounded-[15px] overflow-hidden">
+                      <div 
+                        onClick={(e) => handleStoryClick(story, e)}
+                        className="relative h-[200px] w-full rounded-[15px] overflow-hidden cursor-pointer"
+                      >
                         <img
                           src={story.coverImage}
                           alt={story.title}
@@ -702,7 +815,10 @@ const TodayMixCard = () => {
                           </div>
                         )}
                         <button
-                          onClick={() => handleSave(story._id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSave(story._id);
+                          }}
                           disabled={savingState[story._id]}
                           className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-md hover:bg-white transition-colors"
                         >
@@ -739,20 +855,21 @@ const TodayMixCard = () => {
                         </span>
                       </div>
 
-                      <h3 className="text-xl font-sans font-medium leading-tight mb-4 text-black px-2 line-clamp-2">
-                        {story.title}
-                      </h3>
+                      <div onClick={(e) => handleStoryClick(story, e)} className="cursor-pointer">
+                        <h3 className="text-xl font-sans font-medium leading-tight mb-4 text-black px-2 line-clamp-2 hover:text-blue-600 transition-colors">
+                          {story.title}
+                        </h3>
+                      </div>
 
                       <p className="text-gray-500 text-[13px] font-serif leading-relaxed mb-4 line-clamp-3">
                         {story.summary}
                       </p>
 
-                      <a
-                        href={`/reader/story/${story._id}`}
-                        className="flex items-center gap-1 text-[#4B59B3] font-sans text-xs font-bold mb-6 hover:underline"
-                      >
-                        Read More <ArrowUpRight size={14} />
-                      </a>
+                      <div onClick={(e) => handleStoryClick(story, e)} className="cursor-pointer">
+                        <span className="flex items-center gap-1 text-[#4B59B3] font-sans text-xs font-bold mb-6 hover:underline">
+                          Read More <ArrowUpRight size={14} />
+                        </span>
+                      </div>
 
                       {/* Footer Stats with real data */}
                       <div className="w-full flex items-center justify-between pt-4 border-t border-gray-100 text-gray-400">
@@ -783,7 +900,6 @@ const TodayMixCard = () => {
                           className="flex items-center gap-1.5 transition-all active:scale-90"
                         >
                           <Share2 size={14} className="text-black" />
-                         
                         </button>
                       </div>
                     </div>

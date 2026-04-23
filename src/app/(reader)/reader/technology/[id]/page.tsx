@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   Bookmark, ThumbsUp, ThumbsDown, MessageSquare, Share2,
   Send, ArrowUpRight, Lock, MoreHorizontal, Edit2, Trash2,
-  Reply, X, ChevronDown,
+  Reply, X, ChevronDown, Crown,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -44,6 +44,125 @@ const toastStyle = {
   error: {
     style: { background: "#fff", color: "#ef4444", borderRadius: "999px", padding: "12px 20px", fontSize: "14px", fontFamily: "serif", border: "1px solid #fecaca", boxShadow: "0 4px 24px rgba(0,0,0,0.08)" },
   },
+};
+
+// ── Premium Modal Component ───────────────────────────────────
+interface PremiumModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubscribe: () => void;
+}
+
+const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, onSubscribe }) => {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md px-4"
+          onClick={(e) => e.target === e.currentTarget && onClose()}
+        >
+          <motion.div
+            initial={{ scale: 0.9, y: 20, opacity: 0 }}
+            animate={{ scale: 1, y: 0, opacity: 1 }}
+            exit={{ scale: 0.9, y: 20, opacity: 0 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl"
+          >
+            {/* Premium Header */}
+            <div className="relative bg-gradient-to-br from-[#343E87] via-[#3448D6] to-[#343E87] pt-8 pb-12 px-6 text-center">
+              <div className="absolute top-4 right-4">
+                <button
+                  onClick={onClose}
+                  className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+                >
+                  <X size={16} className="text-white" />
+                </button>
+              </div>
+              <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Crown size={40} className="text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-2">Premium Content</h2>
+              <p className="text-white/80 text-sm">
+                This content is only available for premium subscribers.
+              </p>
+            </div>
+
+            {/* Content */}
+            <div className="p-6">
+              <p className="text-gray-700 text-center mb-6 font-serif leading-relaxed">
+                Would you like to subscribe to access all premium content?
+              </p>
+
+              {/* Benefits */}
+              <div className="space-y-3 mb-8">
+                <div className="flex items-center gap-3 text-sm text-gray-600">
+                  <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
+                    <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span>Unlimited access to all premium articles</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm text-gray-600">
+                  <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
+                    <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span>Exclusive opinions & long-form content</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm text-gray-600">
+                  <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
+                    <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span>Save articles & personalized recommendations</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm text-gray-600">
+                  <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
+                    <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span>Cancel anytime</span>
+                </div>
+              </div>
+
+              {/* Price */}
+              <div className="text-center mb-6">
+                <span className="text-3xl font-bold text-gray-900">$9.99</span>
+                <span className="text-gray-500">/month</span>
+                <p className="text-xs text-gray-400 mt-1">or $89.99/year (Save 20%)</p>
+              </div>
+
+              {/* Buttons */}
+              <div className="space-y-3">
+                <button
+                  onClick={onSubscribe}
+                  className="w-full py-3 rounded-xl text-white font-semibold transition-all hover:shadow-lg active:scale-[0.98]"
+                  style={{
+                    background: "linear-gradient(90deg, #343E87 12.02%, #3448D6 50%, #343E87 88.46%)"
+                  }}
+                >
+                  SUBSCRIBE NOW
+                </button>
+                <button
+                  onClick={onClose}
+                  className="w-full py-3 rounded-xl border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-all"
+                >
+                  MAYBE LATER
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 };
 
 // ── CommentItem ────────────────────────────────────────────────
@@ -285,12 +404,13 @@ const EditCommentModal: React.FC<EditModalProps> = ({ open, initialContent, onCo
 // ── TechnologyStory ───────────────────────────────────────────────
 const TechnologyStory = () => {
   const params = useParams();
+  const router = useRouter();
   const storyId = params?.id as string;
 
   const [story, setStory] = useState<Story | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isPremiumLocked, setIsPremiumLocked] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
 
   const [isSaved, setIsSaved] = useState(false);
   const [savingToggle, setSavingToggle] = useState(false);
@@ -340,6 +460,14 @@ const TechnologyStory = () => {
       try {
         const storyRes = await fetchStoryDetail(storyId);
         if (cancelled) return;
+        
+        // ✅ Check if story is premium - show modal instead of direct redirect
+        if (storyRes.isPremium === true && storyRes.subscriptionRequired === true) {
+          setShowPremiumModal(true);
+          setLoading(false);
+          return;
+        }
+        
         if (storyRes.success && storyRes.data) {
           setStory(storyRes.data);
           const [checkRes, reactRes] = await Promise.allSettled([
@@ -355,8 +483,8 @@ const TechnologyStory = () => {
           await loadComments(1);
           const freshId = getCurrentUserId();
           if (freshId && !cancelled) setCurrentUserId(freshId);
-        } else if (storyRes.subscriptionRequired) {
-          setIsPremiumLocked(true);
+        } else if (storyRes.subscriptionRequired || storyRes.isPremium) {
+          setShowPremiumModal(true);
         } else {
           setError(storyRes.message || "Failed to load story");
         }
@@ -371,6 +499,11 @@ const TechnologyStory = () => {
   }, [storyId, loadComments]);
 
   // ── Handlers ─────────────────────────────────────────────────
+  const handleSubscribeRedirect = () => {
+    setShowPremiumModal(false);
+    router.push("/reader/subscribe");
+  };
+
   const handleSave = async () => {
     if (savingToggle) return;
     setSavingToggle(true);
@@ -506,27 +639,6 @@ const TechnologyStory = () => {
     );
   }
 
-  if (isPremiumLocked) {
-    return (
-      <main className="bg-white min-h-screen">
-        <section className="relative w-full min-h-[80vh] flex flex-col md:flex-row bg-black pt-20 md:pt-24 overflow-hidden">
-          <div className="w-full flex items-center justify-center bg-black text-white px-6 py-20 z-10">
-            <div className="max-w-[540px] text-center flex flex-col items-center">
-              <Lock size={48} className="mb-6 text-gray-400" />
-              <h1 className="font-sans text-[40px] md:text-[68px] leading-[1.1] mb-6">Premium Content</h1>
-              <p className="text-white/70 text-lg mb-8 font-serif font-light">This story is available only for our subscribers.</p>
-              <Link href="/reader/subscribe">
-                <motion.button whileHover={{ scale: 1.05 }} className="px-8 py-3 bg-gradient-to-r from-[#343E87] via-[#3448D6] to-[#343E87] text-white rounded-full font-bold shadow-lg">
-                  Subscribe to Read
-                </motion.button>
-              </Link>
-            </div>
-          </div>
-        </section>
-      </main>
-    );
-  }
-
   if (error) {
     return (
       <div className="bg-white min-h-screen flex items-center justify-center">
@@ -540,6 +652,13 @@ const TechnologyStory = () => {
   return (
     <main className="bg-white min-h-screen">
       <Toaster position="bottom-center" />
+
+      {/* Premium Modal */}
+      <PremiumModal
+        isOpen={showPremiumModal}
+        onClose={() => setShowPremiumModal(false)}
+        onSubscribe={handleSubscribeRedirect}
+      />
 
       <EditCommentModal
         open={editModal.open} initialContent={editModal.content}

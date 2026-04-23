@@ -100,7 +100,7 @@ const PodcastCard: React.FC<PodcastCardProps> = ({ podcast, isPlaying, onPlay, o
           <div className="text-[11px] text-black font-serif font-medium">
             {podcast.audioDuration} min • {formatDate(podcast.createdAt)}
           </div>
-          <button
+          {/* <button
             onClick={handlePlayClick}
             className="hover:scale-110 transition-transform border border-gray-300 rounded-full p-2 bg-gray-100"
           >
@@ -109,7 +109,7 @@ const PodcastCard: React.FC<PodcastCardProps> = ({ podcast, isPlaying, onPlay, o
             ) : (
               <Play size={20} fill="black" className="text-black" />
             )}
-          </button>
+          </button> */}
         </div>
       </div>
     </div>

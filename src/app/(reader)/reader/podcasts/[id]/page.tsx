@@ -1,20 +1,93 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { useParams } from "next/navigation";
-import { Play, Pause, RotateCcw, RotateCw, Bookmark, ThumbsUp, MessageSquare, Share2, ArrowUpRight, Lock } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { Play, Pause, RotateCcw, RotateCw, Bookmark, ThumbsUp, MessageSquare, Share2, ArrowUpRight, Lock, Crown, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { fetchPodcastDetail, fetchAllPodcasts, Podcast } from "@/components/podcastApiClient";
 
+// ── Premium Modal Component ───────────────────────────────────
+interface PremiumModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubscribe: () => void;
+}
+
+const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, onSubscribe }) => {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md px-4"
+          onClick={(e) => e.target === e.currentTarget && onClose()}
+        >
+          <motion.div
+            initial={{ scale: 0.9, y: 20, opacity: 0 }}
+            animate={{ scale: 1, y: 0, opacity: 1 }}
+            exit={{ scale: 0.9, y: 20, opacity: 0 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl"
+          >
+            <div className="relative bg-gradient-to-br from-[#343E87] via-[#3448D6] to-[#343E87] pt-8 pb-12 px-6 text-center">
+              <div className="absolute top-4 right-4">
+                <button
+                  onClick={onClose}
+                  className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+                >
+                  <X size={16} className="text-white" />
+                </button>
+              </div>
+              <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Crown size={40} className="text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-2">Premium Content</h2>
+              <p className="text-white/80 text-sm">
+                This content is only available for premium subscribers.
+              </p>
+            </div>
+            <div className="p-6">
+              <p className="text-gray-700 text-center mb-8 font-serif leading-relaxed">
+                Would you like to subscribe to access all premium content?
+              </p>
+              <div className="space-y-3">
+                <button
+                  onClick={onSubscribe}
+                  className="w-full py-3 rounded-xl text-white font-semibold transition-all hover:shadow-lg active:scale-[0.98]"
+                  style={{
+                    background: "linear-gradient(90deg, #343E87 12.02%, #3448D6 50%, #343E87 88.46%)"
+                  }}
+                >
+                  SUBSCRIBE NOW
+                </button>
+                <button
+                  onClick={onClose}
+                  className="w-full py-3 rounded-xl border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-all"
+                >
+                  MAYBE LATER
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
 const OpedRadyo = () => {
   const params = useParams();
+  const router = useRouter();
   const podcastId = params?.id as string;
 
   // State for current podcast detail
   const [podcast, setPodcast] = useState<Podcast | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isPremiumLocked, setIsPremiumLocked] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
 
   // State for all podcasts (episode list)
   const [allPodcasts, setAllPodcasts] = useState<Podcast[]>([]);
@@ -36,11 +109,15 @@ const OpedRadyo = () => {
         const res = await fetchPodcastDetail(podcastId);
         if (!cancelled) {
           if (res.success && res.data) {
+            // Check if podcast is premium
+            if (res.data.isPremium === true || res.isPremium === true) {
+              setShowPremiumModal(true);
+              setLoading(false);
+              return;
+            }
             setPodcast(res.data);
-            setIsPremiumLocked(false);
           } else if (res.subscriptionRequired) {
-            setIsPremiumLocked(true);
-            setError(res.message || "Subscribe to listen to premium content");
+            setShowPremiumModal(true);
           } else {
             setError(res.message || "Failed to load podcast");
           }
@@ -77,11 +154,11 @@ const OpedRadyo = () => {
 
   // Audio play/pause sync
   useEffect(() => {
-    if (audioRef.current && !isPremiumLocked && podcast?.audioFile) {
+    if (audioRef.current && podcast?.audioFile && !showPremiumModal) {
       if (isPlaying) audioRef.current.play();
       else audioRef.current.pause();
     }
-  }, [isPlaying, podcast, isPremiumLocked]);
+  }, [isPlaying, podcast, showPremiumModal]);
 
   const onTimeUpdate = () => {
     if (audioRef.current) {
@@ -97,9 +174,25 @@ const OpedRadyo = () => {
     return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
   };
 
-  const handleTrackChange = (newPodcast: Podcast) => {
+  const handleTrackChange = (newPodcast: Podcast, e: React.MouseEvent) => {
+    e.preventDefault();
     if (newPodcast._id === podcast?._id) return;
-    window.location.href = `/reader/podcasts/${newPodcast._id}`;
+    
+    if (newPodcast.isPremium) {
+      setShowPremiumModal(true);
+    } else {
+      router.push(`/reader/podcasts/${newPodcast._id}`);
+    }
+  };
+
+  const handleSubscribeRedirect = () => {
+    setShowPremiumModal(false);
+    router.push("/reader/subscribe");
+  };
+
+  const handleModalClose = () => {
+    setShowPremiumModal(false);
+    router.back();
   };
 
   // Loading skeleton for main player
@@ -111,10 +204,23 @@ const OpedRadyo = () => {
     );
   }
 
-  // Premium locked view
-  if (isPremiumLocked) {
+  if (error && !showPremiumModal) {
+    return (
+      <div className="bg-white min-h-screen pt-28 md:pt-64 pb-20 text-black flex items-center justify-center">
+        <p className="text-red-500">{error}</p>
+      </div>
+    );
+  }
+
+  // Don't show content if premium modal is open
+  if (showPremiumModal || !podcast) {
     return (
       <div className="bg-white min-h-screen pt-28 md:pt-64 pb-20 text-black">
+        <PremiumModal
+          isOpen={showPremiumModal}
+          onClose={handleModalClose}
+          onSubscribe={handleSubscribeRedirect}
+        />
         <div className="max-w-6xl mx-auto text-center mb-12">
           <h1 className="text-5xl font-sans font-extrabold mb-4 text-black tracking-wide">Oped Radyo</h1>
           <p className="text-gray-500 font-serif text-sm px-4 tracking-wide">
@@ -126,27 +232,27 @@ const OpedRadyo = () => {
             <Lock size={48} className="text-gray-400 mb-4" />
             <h2 className="text-2xl font-sans font-bold mb-2">Premium Content</h2>
             <p className="text-gray-500 mb-6">Subscribe to listen to this podcast episode.</p>
-            <Link href="/reader/subscribe">
-              <button className="px-6 py-2 bg-black text-white rounded-full font-sans text-sm">
-                Subscribe Now
-              </button>
-            </Link>
+            <button
+              onClick={handleSubscribeRedirect}
+              className="px-6 py-2 bg-black text-white rounded-full font-sans text-sm"
+            >
+              Subscribe Now
+            </button>
           </div>
         </div>
       </div>
     );
   }
 
-  if (error || !podcast) {
-    return (
-      <div className="bg-white min-h-screen pt-28 md:pt-64 pb-20 text-black flex items-center justify-center">
-        <p className="text-red-500">{error || "Podcast not found"}</p>
-      </div>
-    );
-  }
-
   return (
     <div className="bg-white min-h-screen pt-28 md:pt-64 pb-20 text-black">
+      {/* Premium Modal */}
+      <PremiumModal
+        isOpen={showPremiumModal}
+        onClose={handleModalClose}
+        onSubscribe={handleSubscribeRedirect}
+      />
+
       {/* Hidden Audio Element */}
       <audio ref={audioRef} src={podcast.audioFile} onTimeUpdate={onTimeUpdate} onLoadedMetadata={onTimeUpdate} />
 
@@ -238,7 +344,7 @@ const OpedRadyo = () => {
               allPodcasts.map((ep) => (
                 <div
                   key={ep._id}
-                  onClick={() => handleTrackChange(ep)}
+                  onClick={(e) => handleTrackChange(ep, e)}
                   className="p-5 border-b border-gray-50 flex items-center justify-between hover:bg-gray-50 cursor-pointer group px-8"
                 >
                   <div>
@@ -248,6 +354,9 @@ const OpedRadyo = () => {
                       }`}
                     >
                       {ep.title}
+                      {ep.isPremium && (
+                        <span className="inline-block ml-2 text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">Premium</span>
+                      )}
                     </h4>
                     <p className="text-[11px] text-gray-400 mt-1 font-serif tracking-wide">
                       {new Date(ep.createdAt).toLocaleDateString()} | {ep.audioDuration} min
@@ -261,7 +370,7 @@ const OpedRadyo = () => {
         </div>
       </div>
 
-      {/* All Episodes Bottom Section (Static cards – replaced with dynamic) */}
+      {/* All Episodes Bottom Section */}
       <div className="max-w-6xl mx-auto px-6">
         <h3 className="text-5xl font-sans text-center font-extrabold mb-9 text-black border-b border-t py-3 border-gray-100 tracking-wide">
           All Episodes
@@ -270,13 +379,18 @@ const OpedRadyo = () => {
           {allPodcasts.map((ep) => (
             <div key={ep._id} className="flex flex-col md:flex-row gap-10 items-start border-b border-gray-50 pb-12">
               <div className="flex-1">
-                <h4 className="text-xl font-sans font-extrabold mb-3 text-black tracking-wide">{ep.title}</h4>
+                <h4 className="text-xl font-sans font-extrabold mb-3 text-black tracking-wide">
+                  {ep.title}
+                  {ep.isPremium && (
+                    <span className="inline-block ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full align-middle">Premium</span>
+                  )}
+                </h4>
                 <p className="text-gray-500 text-sm font-serif leading-relaxed mb-4 tracking-wide">{ep.summary}</p>
-                <Link href={`/reader/podcasts/${ep._id}`}>
+                <div onClick={(e) => handleTrackChange(ep, e)} className="cursor-pointer inline-block">
                   <button className="text-blue-600 text-xs font-bold flex items-center gap-1 font-sans mb-6 tracking-wide">
                     Read More <ArrowUpRight size={14} />
                   </button>
-                </Link>
+                </div>
                 <div className="flex gap-6 text-gray-500 font-sans tracking-wide">
                   <span className="flex items-center gap-1 text-xs cursor-pointer hover:text-blue-600">
                     <ThumbsUp size={16} /> —
@@ -292,7 +406,7 @@ const OpedRadyo = () => {
                   {new Date(ep.createdAt).toLocaleDateString()}
                 </p>
               </div>
-              <div className="w-full md:w-[280px] h-[180px] rounded-2xl overflow-hidden relative group shadow-md">
+              <div onClick={(e) => handleTrackChange(ep, e)} className="cursor-pointer w-full md:w-[280px] h-[180px] rounded-2xl overflow-hidden relative group shadow-md">
                 <img
                   src={ep.coverImage}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"

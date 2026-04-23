@@ -2,8 +2,81 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Headset, Lock } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Headset, Lock, Crown, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { fetchAllPodcasts, Podcast } from "@/components/podcastApiClient";
+
+// ── Premium Modal Component ───────────────────────────────────
+interface PremiumModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubscribe: () => void;
+}
+
+const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, onSubscribe }) => {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md px-4"
+          onClick={(e) => e.target === e.currentTarget && onClose()}
+        >
+          <motion.div
+            initial={{ scale: 0.9, y: 20, opacity: 0 }}
+            animate={{ scale: 1, y: 0, opacity: 1 }}
+            exit={{ scale: 0.9, y: 20, opacity: 0 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl"
+          >
+            <div className="relative bg-gradient-to-br from-[#343E87] via-[#3448D6] to-[#343E87] pt-8 pb-12 px-6 text-center">
+              <div className="absolute top-4 right-4">
+                <button
+                  onClick={onClose}
+                  className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+                >
+                  <X size={16} className="text-white" />
+                </button>
+              </div>
+              <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Crown size={40} className="text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-2">Premium Content</h2>
+              <p className="text-white/80 text-sm">
+                This content is only available for premium subscribers.
+              </p>
+            </div>
+            <div className="p-6">
+              <p className="text-gray-700 text-center mb-8 font-serif leading-relaxed">
+                Would you like to subscribe to access all premium content?
+              </p>
+              <div className="space-y-3">
+                <button
+                  onClick={onSubscribe}
+                  className="w-full py-3 rounded-xl text-white font-semibold transition-all hover:shadow-lg active:scale-[0.98]"
+                  style={{
+                    background: "linear-gradient(90deg, #343E87 12.02%, #3448D6 50%, #343E87 88.46%)"
+                  }}
+                >
+                  SUBSCRIBE NOW
+                </button>
+                <button
+                  onClick={onClose}
+                  className="w-full py-3 rounded-xl border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-all"
+                >
+                  MAYBE LATER
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
 
 // ── Skeleton Card (matches your design) ────────────────────
 const SkeletonCard = () => (
@@ -29,11 +102,16 @@ const SkeletonCard = () => (
 );
 
 const Podcasts = () => {
+  const router = useRouter();
   const [podcasts, setPodcasts] = useState<Podcast[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  
+  // Premium modal state
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [pendingPodcast, setPendingPodcast] = useState<Podcast | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -66,8 +144,35 @@ const Podcasts = () => {
     });
   };
 
+  const handlePodcastClick = (podcast: Podcast, e: React.MouseEvent) => {
+    e.preventDefault();
+    if (podcast.isPremium) {
+      setPendingPodcast(podcast);
+      setShowPremiumModal(true);
+    } else {
+      router.push(`/reader/podcasts/${podcast._id}`);
+    }
+  };
+
+  const handleSubscribeRedirect = () => {
+    setShowPremiumModal(false);
+    router.push("/reader/subscribe");
+  };
+
+  const handleModalClose = () => {
+    setShowPremiumModal(false);
+    setPendingPodcast(null);
+  };
+
   return (
     <div className="bg-white min-h-screen pt-28 md:pt-64 pb-10">
+      {/* Premium Modal */}
+      <PremiumModal
+        isOpen={showPremiumModal}
+        onClose={handleModalClose}
+        onSubscribe={handleSubscribeRedirect}
+      />
+
       <div className="max-w-4xl mx-auto text-center mb-12 px-4">
         <h1 className="text-6xl font-sans text-gray-900 mb-4 font-extrabold tracking-wide">Podcasts</h1>
         <p className="text-gray-600 font-serif text-sm max-w-2xl mx-auto tracking-wide">
@@ -107,29 +212,32 @@ const Podcasts = () => {
 
                     <h2 className="text-2xl font-sans font-extrabold text-gray-900 mb-3 tracking-wide">
                       {podcast.title}
+                      {podcast.isPremium && (
+                        <span className="inline-block ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full align-middle">Premium</span>
+                      )}
                     </h2>
                     <p className="text-gray-500 text-sm leading-relaxed mb-8 font-serif tracking-wide">
                       {podcast.summary}
                     </p>
 
                     <div className="flex flex-col gap-3 max-w-md">
-                      <Link href={`/reader/podcasts/${podcast._id}`}>
+                      <div onClick={(e) => handlePodcastClick(podcast, e)} className="cursor-pointer">
                         <button
                           style={{ background: 'linear-gradient(90deg, #343E87 12.02%, #3448D6 50%, #343E87 88.46%)' }}
                           className="w-full py-3 text-white rounded-lg font-sans font-bold text-sm shadow-lg hover:opacity-90 transition-all tracking-wide"
                         >
                           Start Listening
                         </button>
-                      </Link>
-                      <Link href={`/reader/podcasts/${podcast._id}`} className="w-full">
+                      </div>
+                      <div onClick={(e) => handlePodcastClick(podcast, e)} className="cursor-pointer">
                         <button className="w-full py-3 border border-[#3448D6] text-[#3448D6] rounded-lg font-sans font-bold text-sm hover:bg-blue-50 transition-all tracking-wide">
                           All Episodes
                         </button>
-                      </Link>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="w-full md:w-[400px] h-[250px] rounded-2xl overflow-hidden relative shadow-xl order-1 md:order-2">
+                  <div onClick={(e) => handlePodcastClick(podcast, e)} className="cursor-pointer w-full md:w-[400px] h-[250px] rounded-2xl overflow-hidden relative shadow-xl order-1 md:order-2">
                     <img
                       src={podcast.coverImage}
                       className="w-full h-full object-cover"
