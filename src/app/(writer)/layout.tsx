@@ -7,8 +7,6 @@ import WriterSidebar from '@/components/Writer/WriterSidebar';
 import WriterNavbar from '@/components/Writer/WriterNavbar';
 import WriterFooter from '@/components/Writer/WriterFooter';
 
-
-
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
@@ -19,7 +17,11 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
-export default function RootLayout({ children }) {
+interface RootLayoutProps {
+  children: React.ReactNode;
+}
+
+export default function RootLayout({ children }: RootLayoutProps) {
   // Default bhabe true rakha valo jate desktop-e sidebar khola thake
   const [isOpen, setIsOpen] = useState(true);
 

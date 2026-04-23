@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   Bookmark, ThumbsUp, ThumbsDown, MessageSquare, Share2,
   Send, ArrowUpRight, Lock, MoreHorizontal, Edit2, Trash2,
-  Reply, X, ChevronDown,
+  Reply, X, ChevronDown, Crown,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -44,6 +44,77 @@ const toastStyle = {
   error: {
     style: { background: "#fff", color: "#ef4444", borderRadius: "999px", padding: "12px 20px", fontSize: "14px", fontFamily: "serif", border: "1px solid #fecaca", boxShadow: "0 4px 24px rgba(0,0,0,0.08)" },
   },
+};
+
+// ── Premium Modal Component ───────────────────────────────────
+interface PremiumModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubscribe: () => void;
+}
+
+const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, onSubscribe }) => {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md px-4"
+          onClick={(e) => e.target === e.currentTarget && onClose()}
+        >
+          <motion.div
+            initial={{ scale: 0.9, y: 20, opacity: 0 }}
+            animate={{ scale: 1, y: 0, opacity: 1 }}
+            exit={{ scale: 0.9, y: 20, opacity: 0 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl"
+          >
+            <div className="relative bg-gradient-to-br from-[#343E87] via-[#3448D6] to-[#343E87] pt-8 pb-12 px-6 text-center">
+              <div className="absolute top-4 right-4">
+                <button
+                  onClick={onClose}
+                  className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+                >
+                  <X size={16} className="text-white" />
+                </button>
+              </div>
+              <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Crown size={40} className="text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-2">Premium Content</h2>
+              <p className="text-white/80 text-sm">
+                This content is only available for premium subscribers.
+              </p>
+            </div>
+            <div className="p-6">
+              <p className="text-gray-700 text-center mb-8 font-serif leading-relaxed">
+                Would you like to subscribe to access all premium content?
+              </p>
+              <div className="space-y-3">
+                <button
+                  onClick={onSubscribe}
+                  className="w-full py-3 rounded-xl text-white font-semibold transition-all hover:shadow-lg active:scale-[0.98]"
+                  style={{
+                    background: "linear-gradient(90deg, #343E87 12.02%, #3448D6 50%, #343E87 88.46%)"
+                  }}
+                >
+                  SUBSCRIBE NOW
+                </button>
+                <button
+                  onClick={onClose}
+                  className="w-full py-3 rounded-xl border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-all"
+                >
+                  MAYBE LATER
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 };
 
 // ── CommentItem ────────────────────────────────────────────────
@@ -143,13 +214,19 @@ const CommentItem: React.FC<CommentItemProps> = ({
                       className="absolute right-0 mt-1 w-36 bg-white shadow-xl rounded-xl border border-gray-100 z-20 overflow-hidden"
                     >
                       <button
-                        onClick={() => { setShowMenu(false); onEdit(comment._id, comment.content); }}
+                        onClick={async () => { 
+                          setShowMenu(false); 
+                          await onEdit(comment._id, comment.content); 
+                        }}
                         className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 w-full transition-colors"
                       >
                         <Edit2 size={13} /> Edit
                       </button>
                       <button
-                        onClick={() => { setShowMenu(false); onDelete(comment._id); }}
+                        onClick={async () => { 
+                          setShowMenu(false); 
+                          await onDelete(comment._id); 
+                        }}
                         className="flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 w-full transition-colors"
                       >
                         <Trash2 size={13} /> Delete
@@ -285,12 +362,13 @@ const EditCommentModal: React.FC<EditModalProps> = ({ open, initialContent, onCo
 // ── TravelStory ───────────────────────────────────────────────
 const TravelStory = () => {
   const params = useParams();
+  const router = useRouter();
   const storyId = params?.id as string;
 
   const [story, setStory] = useState<Story | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isPremiumLocked, setIsPremiumLocked] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
 
   const [isSaved, setIsSaved] = useState(false);
   const [savingToggle, setSavingToggle] = useState(false);
@@ -340,6 +418,14 @@ const TravelStory = () => {
       try {
         const storyRes = await fetchStoryDetail(storyId);
         if (cancelled) return;
+        
+        // Check if story is premium - show modal
+        if (storyRes.isPremium === true && storyRes.subscriptionRequired === true) {
+          setShowPremiumModal(true);
+          setLoading(false);
+          return;
+        }
+        
         if (storyRes.success && storyRes.data) {
           setStory(storyRes.data);
           const [checkRes, reactRes] = await Promise.allSettled([
@@ -355,8 +441,8 @@ const TravelStory = () => {
           await loadComments(1);
           const freshId = getCurrentUserId();
           if (freshId && !cancelled) setCurrentUserId(freshId);
-        } else if (storyRes.subscriptionRequired) {
-          setIsPremiumLocked(true);
+        } else if (storyRes.subscriptionRequired || storyRes.isPremium) {
+          setShowPremiumModal(true);
         } else {
           setError(storyRes.message || "Failed to load story");
         }
@@ -371,6 +457,16 @@ const TravelStory = () => {
   }, [storyId, loadComments]);
 
   // ── Handlers ─────────────────────────────────────────────────
+  const handleSubscribeRedirect = () => {
+    setShowPremiumModal(false);
+    router.push("/reader/subscribe");
+  };
+
+  const handleModalClose = () => {
+    setShowPremiumModal(false);
+    router.back();
+  };
+
   const handleSave = async () => {
     if (savingToggle) return;
     setSavingToggle(true);
@@ -440,8 +536,10 @@ const TravelStory = () => {
     }
   };
 
-  const handleEditRequest = (commentId: string, oldContent: string) =>
+  // Fixed: Changed to async function that returns Promise<void>
+  const handleEditRequest = async (commentId: string, oldContent: string): Promise<void> => {
     setEditModal({ open: true, id: commentId, content: oldContent });
+  };
 
   const handleEditConfirm = async (newContent: string) => {
     await editComment(editModal.id, newContent);
@@ -494,6 +592,9 @@ const TravelStory = () => {
     return res.data;
   };
 
+  // Get content safely with fallback
+  const storyContent = (story as any)?.content || story?.summary || "No content available.";
+
   // ── Render states ─────────────────────────────────────────────
   if (loading) {
     return (
@@ -506,32 +607,32 @@ const TravelStory = () => {
     );
   }
 
-  if (isPremiumLocked) {
-    return (
-      <main className="bg-white min-h-screen">
-        <section className="relative w-full min-h-[80vh] flex flex-col md:flex-row bg-black pt-20 md:pt-24 overflow-hidden">
-          <div className="w-full flex items-center justify-center bg-black text-white px-6 py-20 z-10">
-            <div className="max-w-[540px] text-center flex flex-col items-center">
-              <Lock size={48} className="mb-6 text-gray-400" />
-              <h1 className="font-sans text-[40px] md:text-[68px] leading-[1.1] mb-6">Premium Content</h1>
-              <p className="text-white/70 text-lg mb-8 font-serif font-light">This story is available only for our subscribers.</p>
-              <Link href="/reader/subscribe">
-                <motion.button whileHover={{ scale: 1.05 }} className="px-8 py-3 bg-gradient-to-r from-[#343E87] via-[#3448D6] to-[#343E87] text-white rounded-full font-bold shadow-lg">
-                  Subscribe to Read
-                </motion.button>
-              </Link>
-            </div>
-          </div>
-        </section>
-      </main>
-    );
-  }
-
   if (error) {
     return (
       <div className="bg-white min-h-screen flex items-center justify-center">
-        <p className="text-red-500 font-serif">{error}</p>
+        <div className="text-center">
+          <p className="text-red-500 font-serif mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-6 py-2 bg-black text-white rounded-full text-sm font-serif hover:bg-gray-800"
+          >
+            Try Again
+          </button>
+        </div>
       </div>
+    );
+  }
+
+  // Don't show content if premium modal is open
+  if (showPremiumModal) {
+    return (
+      <main className="bg-white min-h-screen">
+        <PremiumModal
+          isOpen={showPremiumModal}
+          onClose={handleModalClose}
+          onSubscribe={handleSubscribeRedirect}
+        />
+      </main>
     );
   }
 
@@ -540,6 +641,12 @@ const TravelStory = () => {
   return (
     <main className="bg-white min-h-screen">
       <Toaster position="bottom-center" />
+
+      <PremiumModal
+        isOpen={showPremiumModal}
+        onClose={handleModalClose}
+        onSubscribe={handleSubscribeRedirect}
+      />
 
       <EditCommentModal
         open={editModal.open} initialContent={editModal.content}
@@ -598,7 +705,7 @@ const TravelStory = () => {
 
         <div className="flex-1 min-w-0">
           <article className="prose prose-lg max-w-none text-black leading-loose mb-12">
-            {story.content?.split("\n\n").map((para, idx) => (
+            {storyContent.split("\n\n").map((para: string, idx: number) => (
               <p key={idx} className="mb-6 font-serif text-lg text-gray-800 leading-relaxed">{para}</p>
             ))}
           </article>

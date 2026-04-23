@@ -2,10 +2,34 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Play, Pause, RotateCcw, RotateCw, Bookmark, ThumbsUp, MessageSquare, Share2, ArrowUpRight, Lock, Crown, X } from "lucide-react";
+import { Play, Pause, RotateCcw, RotateCw, Bookmark, ThumbsUp, MessageSquare, Share2, ArrowUpRight, Lock, Crown, X, Heart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { fetchPodcastDetail, fetchAllPodcasts, Podcast } from "@/components/podcastApiClient";
+import {
+  toggleSave,
+  checkSaved,
+  addReaction,
+  getMyReaction,
+  getComments,
+  addComment,
+  likeComment,
+  dislikeComment,
+  Comment,
+  CommentAuthor,
+} from "@/components/socialApiClient";
+import toast, { Toaster } from "react-hot-toast";
+
+// ── Toast config ───────────────────────────────────────────────
+const toastStyle = {
+  success: {
+    style: { background: "#000", color: "#fff", borderRadius: "999px", padding: "12px 20px", fontSize: "14px", fontFamily: "serif" },
+    iconTheme: { primary: "#fff", secondary: "#000" },
+  },
+  error: {
+    style: { background: "#fff", color: "#ef4444", borderRadius: "999px", padding: "12px 20px", fontSize: "14px", fontFamily: "serif", border: "1px solid #fecaca" },
+  },
+};
 
 // ── Premium Modal Component ───────────────────────────────────
 interface PremiumModalProps {
@@ -45,9 +69,7 @@ const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, onSubscrib
                 <Crown size={40} className="text-white" />
               </div>
               <h2 className="text-2xl font-bold text-white mb-2">Premium Content</h2>
-              <p className="text-white/80 text-sm">
-                This content is only available for premium subscribers.
-              </p>
+              <p className="text-white/80 text-sm">This content is only available for premium subscribers.</p>
             </div>
             <div className="p-6">
               <p className="text-gray-700 text-center mb-8 font-serif leading-relaxed">
@@ -57,9 +79,7 @@ const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, onSubscrib
                 <button
                   onClick={onSubscribe}
                   className="w-full py-3 rounded-xl text-white font-semibold transition-all hover:shadow-lg active:scale-[0.98]"
-                  style={{
-                    background: "linear-gradient(90deg, #343E87 12.02%, #3448D6 50%, #343E87 88.46%)"
-                  }}
+                  style={{ background: "linear-gradient(90deg, #343E87 12.02%, #3448D6 50%, #343E87 88.46%)" }}
                 >
                   SUBSCRIBE NOW
                 </button>
@@ -93,11 +113,27 @@ const OpedRadyo = () => {
   const [allPodcasts, setAllPodcasts] = useState<Podcast[]>([]);
   const [allLoading, setAllLoading] = useState(true);
 
+  // Social states
+  const [isSaved, setIsSaved] = useState(false);
+  const [savingToggle, setSavingToggle] = useState(false);
+  const [myReaction, setMyReaction] = useState<string | null>(null);
+  const [reactionCount, setReactionCount] = useState(0);
+  const [commentCount, setCommentCount] = useState(0);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
   // Audio player states
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+
+  // Get current user
+  useEffect(() => {
+    try {
+      const u = localStorage.getItem("oped_user");
+      if (u) setCurrentUserId(JSON.parse(u).id ?? null);
+    } catch {}
+  }, []);
 
   // Fetch current podcast detail
   useEffect(() => {
@@ -109,13 +145,33 @@ const OpedRadyo = () => {
         const res = await fetchPodcastDetail(podcastId);
         if (!cancelled) {
           if (res.success && res.data) {
-            // Check if podcast is premium
             if (res.data.isPremium === true || res.isPremium === true) {
               setShowPremiumModal(true);
               setLoading(false);
               return;
             }
             setPodcast(res.data);
+            
+            // Fetch social data
+            try {
+              const [savedRes, reactRes, commentsRes] = await Promise.allSettled([
+                checkSaved(podcastId, "saved"),
+                getMyReaction("podcast", podcastId),
+                getComments("podcast", podcastId, 1, 1),
+              ]);
+              if (savedRes.status === "fulfilled" && savedRes.value.success) {
+                setIsSaved(savedRes.value.data.isSaved);
+              }
+              if (reactRes.status === "fulfilled" && reactRes.value.success) {
+                setMyReaction(reactRes.value.data.myReaction ?? null);
+                setReactionCount(reactRes.value.data.summary?.like ?? 0);
+              }
+              if (commentsRes.status === "fulfilled" && commentsRes.value.success) {
+                setCommentCount(commentsRes.value.pagination.total);
+              }
+            } catch (err) {
+              console.error("Failed to load social data", err);
+            }
           } else if (res.subscriptionRequired) {
             setShowPremiumModal(true);
           } else {
@@ -195,6 +251,48 @@ const OpedRadyo = () => {
     router.back();
   };
 
+  const handleSave = async () => {
+    if (savingToggle || !podcast) return;
+    setSavingToggle(true);
+    const prev = isSaved;
+    setIsSaved(!prev);
+    try {
+      const res = await toggleSave("podcast", podcast._id, "saved");
+      setIsSaved(res.data.isSaved);
+      toast.success(res.data.isSaved ? "Episode saved!" : "Removed from saved.", toastStyle.success);
+    } catch (err: any) {
+      setIsSaved(prev);
+      toast.error(err.message || "Failed to save. Please login.", toastStyle.error);
+    } finally {
+      setSavingToggle(false);
+    }
+  };
+
+  const handleReaction = async () => {
+    if (!podcast) return;
+    const wasLiked = myReaction === "like";
+    setMyReaction(wasLiked ? null : "like");
+    setReactionCount(c => (wasLiked ? Math.max(0, c - 1) : c + 1));
+    try {
+      await addReaction("podcast", podcast._id, "like");
+      const fresh = await getMyReaction("podcast", podcast._id);
+      if (fresh.success) {
+        setMyReaction(fresh.data.myReaction ?? null);
+        setReactionCount(fresh.data.summary?.like ?? 0);
+      }
+    } catch (err: any) {
+      setMyReaction(wasLiked ? "like" : null);
+      setReactionCount(c => (wasLiked ? c + 1 : Math.max(0, c - 1)));
+      toast.error(err.message || "Failed to react. Please login.", toastStyle.error);
+    }
+  };
+
+  const formatNumber = (num: number): string => {
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
+    return num.toString();
+  };
+
   // Loading skeleton for main player
   if (loading) {
     return (
@@ -246,6 +344,8 @@ const OpedRadyo = () => {
 
   return (
     <div className="bg-white min-h-screen pt-28 md:pt-64 pb-20 text-black">
+      <Toaster position="bottom-center" />
+
       {/* Premium Modal */}
       <PremiumModal
         isOpen={showPremiumModal}
@@ -270,7 +370,7 @@ const OpedRadyo = () => {
           <div className="flex-1 w-full">
             <div className="flex items-center gap-2 mb-4">
               <img
-                src={podcast.author.profileImage || `https://ui-avatars.com/api/?name=${podcast.author.name}&background=random`}
+                src={podcast.author.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(podcast.author.name)}&background=random`}
                 className="w-8 h-8 rounded-full object-cover"
                 alt={podcast.author.name}
               />
@@ -284,6 +384,21 @@ const OpedRadyo = () => {
             <p className="text-gray-400 text-xs mb-6 font-serif tracking-wide">
               {podcast.audioDuration} min • {new Date(podcast.createdAt).toLocaleDateString()}
             </p>
+
+            {/* Social Stats Row */}
+            <div className="flex items-center gap-6 mb-4">
+              <button onClick={handleReaction} className={`flex items-center gap-1.5 transition-all ${myReaction === "like" ? "text-blue-600" : "text-gray-500 hover:text-blue-600"}`}>
+                <ThumbsUp size={16} fill={myReaction === "like" ? "currentColor" : "none"} />
+                <span className="text-xs font-sans font-bold">{formatNumber(reactionCount)}</span>
+              </button>
+              <button className="flex items-center gap-1.5 text-gray-500 hover:text-blue-600 transition-all">
+                <MessageSquare size={16} />
+                <span className="text-xs font-sans font-bold">{formatNumber(commentCount)}</span>
+              </button>
+              <button onClick={handleSave} disabled={savingToggle} className="flex items-center gap-1.5 text-gray-500 hover:text-blue-600 transition-all">
+                <Bookmark size={16} className={isSaved ? "text-blue-600 fill-blue-600" : ""} />
+              </button>
+            </div>
 
             {/* Progress Bar */}
             <div
@@ -310,14 +425,14 @@ const OpedRadyo = () => {
 
             {/* Controls */}
             <div className="flex items-center justify-center gap-8">
-              <RotateCcw size={20} className="text-gray-600 cursor-pointer" onClick={() => audioRef.current && (audioRef.current.currentTime -= 10)} />
+              <RotateCcw size={20} className="text-gray-600 cursor-pointer hover:text-black transition-colors" onClick={() => audioRef.current && (audioRef.current.currentTime -= 10)} />
               <button
                 onClick={() => setIsPlaying(!isPlaying)}
                 className="w-12 h-12 bg-white border border-black rounded-full flex items-center justify-center shadow-lg hover:scale-105 transition-all"
               >
                 {isPlaying ? <Pause size={24} fill="black" /> : <Play size={24} fill="black" className="ml-1" />}
               </button>
-              <RotateCw size={20} className="text-gray-600 cursor-pointer" onClick={() => audioRef.current && (audioRef.current.currentTime += 10)} />
+              <RotateCw size={20} className="text-gray-600 cursor-pointer hover:text-black transition-colors" onClick={() => audioRef.current && (audioRef.current.currentTime += 10)} />
             </div>
           </div>
           <div className="w-full md:w-[350px] h-[220px] rounded-2xl overflow-hidden shadow-lg relative">
@@ -412,7 +527,13 @@ const OpedRadyo = () => {
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   alt={ep.title}
                 />
-                <button className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur rounded-full shadow-md text-black hover:bg-blue-600 hover:text-white transition-all">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSave();
+                  }}
+                  className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur rounded-full shadow-md text-black hover:bg-blue-600 hover:text-white transition-all"
+                >
                   <Bookmark size={16} />
                 </button>
                 {ep.isPremium && (

@@ -90,54 +90,11 @@ const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, onSubscrib
               </p>
             </div>
 
-            {/* Content */}
+            {/* Content - Simplified */}
             <div className="p-6">
-              <p className="text-gray-700 text-center mb-6 font-serif leading-relaxed">
+              <p className="text-gray-700 text-center mb-8 font-serif leading-relaxed">
                 Would you like to subscribe to access all premium content?
               </p>
-
-              {/* Benefits */}
-              <div className="space-y-3 mb-8">
-                <div className="flex items-center gap-3 text-sm text-gray-600">
-                  <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
-                    <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <span>Unlimited access to all premium articles</span>
-                </div>
-                <div className="flex items-center gap-3 text-sm text-gray-600">
-                  <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
-                    <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <span>Exclusive opinions & long-form content</span>
-                </div>
-                <div className="flex items-center gap-3 text-sm text-gray-600">
-                  <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
-                    <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <span>Save articles & personalized recommendations</span>
-                </div>
-                <div className="flex items-center gap-3 text-sm text-gray-600">
-                  <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
-                    <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <span>Cancel anytime</span>
-                </div>
-              </div>
-
-              {/* Price */}
-              <div className="text-center mb-6">
-                <span className="text-3xl font-bold text-gray-900">$9.99</span>
-                <span className="text-gray-500">/month</span>
-                <p className="text-xs text-gray-400 mt-1">or $89.99/year (Save 20%)</p>
-              </div>
 
               {/* Buttons */}
               <div className="space-y-3">
@@ -262,13 +219,19 @@ const CommentItem: React.FC<CommentItemProps> = ({
                       className="absolute right-0 mt-1 w-36 bg-white shadow-xl rounded-xl border border-gray-100 z-20 overflow-hidden"
                     >
                       <button
-                        onClick={() => { setShowMenu(false); onEdit(comment._id, comment.content); }}
+                        onClick={async () => { 
+                          setShowMenu(false); 
+                          await onEdit(comment._id, comment.content); 
+                        }}
                         className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 w-full transition-colors"
                       >
                         <Edit2 size={13} /> Edit
                       </button>
                       <button
-                        onClick={() => { setShowMenu(false); onDelete(comment._id); }}
+                        onClick={async () => { 
+                          setShowMenu(false); 
+                          await onDelete(comment._id); 
+                        }}
                         className="flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 w-full transition-colors"
                       >
                         <Trash2 size={13} /> Delete
@@ -511,6 +474,11 @@ const ExploreStory = () => {
     router.push("/reader/subscribe");
   };
 
+  const handleModalClose = () => {
+    setShowPremiumModal(false);
+    router.back();
+  };
+
   const handleSave = async () => {
     if (savingToggle) return;
     setSavingToggle(true);
@@ -580,8 +548,10 @@ const ExploreStory = () => {
     }
   };
 
-  const handleEditRequest = (commentId: string, oldContent: string) =>
+  // Fixed: Changed to async function that returns Promise<void>
+  const handleEditRequest = async (commentId: string, oldContent: string): Promise<void> => {
     setEditModal({ open: true, id: commentId, content: oldContent });
+  };
 
   const handleEditConfirm = async (newContent: string) => {
     await editComment(editModal.id, newContent);
@@ -634,6 +604,9 @@ const ExploreStory = () => {
     return res.data;
   };
 
+  // Get content safely with fallback
+  const storyContent = (story as any)?.content || story?.summary || "No content available.";
+
   // ── Render states ─────────────────────────────────────────────
   
   // Show loading
@@ -666,7 +639,6 @@ const ExploreStory = () => {
   }
 
   // Show nothing while modal is open (modal will be shown)
-  // But we still need to render the modal
   return (
     <main className="bg-white min-h-screen">
       <Toaster position="bottom-center" />
@@ -674,10 +646,7 @@ const ExploreStory = () => {
       {/* Premium Modal - Always shown when showPremiumModal is true */}
       <PremiumModal
         isOpen={showPremiumModal}
-        onClose={() => {
-          setShowPremiumModal(false);
-          router.back(); // Go back to previous page
-        }}
+        onClose={handleModalClose}
         onSubscribe={handleSubscribeRedirect}
       />
 
@@ -741,7 +710,7 @@ const ExploreStory = () => {
 
             <div className="flex-1 min-w-0">
               <article className="prose prose-lg max-w-none text-black leading-loose mb-12">
-                {story.content?.split("\n\n").map((para, idx) => (
+                {storyContent.split("\n\n").map((para: string, idx: number) => (
                   <p key={idx} className="mb-6 font-serif text-lg text-gray-800 leading-relaxed">{para}</p>
                 ))}
               </article>

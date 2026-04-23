@@ -2,7 +2,7 @@
 //  podcastApiClient.ts  –  API client for podcasts
 // ============================================================
 
-import { BASE_URL, READER_PODCASTS, PodcastListParams } from "./api";
+import { BASE_URL, READER_PODCASTS } from "./api";
 
 // ── Types (based on your API response) ─────────────────────
 
@@ -49,6 +49,13 @@ export interface PodcastDetailResponse {
   subscriptionRequired?: boolean;
   message?: string;
   data?: Podcast;
+}
+
+// ── PodcastListParams type definition ─────────────────────
+export interface PodcastListParams {
+  category?: string;
+  page?: number;
+  limit?: number;
 }
 
 // ── Helpers ─────────────────────────────────────────────────
