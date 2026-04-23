@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ThumbsUp, MessageSquare, Share2, ArrowUpRight, Bookmark, BookmarkCheck } from "lucide-react";
+import { ThumbsUp, MessageSquare, Share2, ArrowUpRight, Bookmark, BookmarkCheck, Crown, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { fetchStoryDetail, StoryDetailResponse, fetchStories } from "@/components/storyApiClient";
 import { 
   getMyReaction, 
@@ -38,11 +39,78 @@ const FALLBACK_STORY = {
   createdAt: new Date().toISOString()
 };
 
+// Premium Modal Component
+interface PremiumModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubscribe: () => void;
+}
+
+const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, onSubscribe }) => {
+  return (
+    <div>
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md px-4"
+          onClick={(e) => e.target === e.currentTarget && onClose()}
+        >
+          <div className="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div className="relative bg-gradient-to-br from-[#343E87] via-[#3448D6] to-[#343E87] pt-8 pb-12 px-6 text-center">
+              <div className="absolute top-4 right-4">
+                <button
+                  onClick={onClose}
+                  className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+                >
+                  <X size={16} className="text-white" />
+                </button>
+              </div>
+              <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Crown size={40} className="text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-2">Premium Content</h2>
+              <p className="text-white/80 text-sm">
+                This content is only available for premium subscribers.
+              </p>
+            </div>
+            <div className="p-6">
+              <p className="text-gray-700 text-center mb-8 font-serif leading-relaxed">
+                Would you like to subscribe to access all premium content?
+              </p>
+              <div className="space-y-3">
+                <button
+                  onClick={onSubscribe}
+                  className="w-full py-3 rounded-xl text-white font-semibold transition-all hover:shadow-lg active:scale-[0.98]"
+                  style={{
+                    background: "linear-gradient(90deg, #343E87 12.02%, #3448D6 50%, #343E87 88.46%)"
+                  }}
+                >
+                  SUBSCRIBE NOW
+                </button>
+                <button
+                  onClick={onClose}
+                  className="w-full py-3 rounded-xl border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-all"
+                >
+                  MAYBE LATER
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const Newsome = ({ storyId, storySlug }: NewsomeProps) => {
+  const router = useRouter();
   const [story, setStory] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [apiTimeout, setApiTimeout] = useState(false);
+  
+  // Premium modal state
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [pendingStory, setPendingStory] = useState<any>(null);
   
   // Reaction states
   const [reactionSummary, setReactionSummary] = useState({
@@ -65,6 +133,9 @@ const Newsome = ({ storyId, storySlug }: NewsomeProps) => {
   
   // Share state
   const [showShareTooltip, setShowShareTooltip] = useState(false);
+
+  // Check if story is premium
+  const isStoryPremium = story?.isPremium === true;
 
   // Main story loading with timeout
   useEffect(() => {
@@ -89,43 +160,61 @@ const Newsome = ({ storyId, storySlug }: NewsomeProps) => {
       }, 5000);
 
       try {
-        // Try to fetch real stories first
-        const response = await fetchStories({ page: 1, limit: 5 });
-        
-        if (!isMounted) return;
-        
-        if (response.success && response.data && response.data.length > 0) {
-          // If specific story ID is requested, try to find it
-          if (storyId && /^[0-9a-fA-F]{24}$/.test(storyId)) {
-            try {
-              const detailResponse = await fetchStoryDetail(storyId);
+        // If specific story ID is provided and valid
+        if (storyId && /^[0-9a-fA-F]{24}$/.test(storyId)) {
+          try {
+            const detailResponse = await fetchStoryDetail(storyId);
+            if (isMounted) {
               if (detailResponse.success && detailResponse.data) {
+                // Check if premium - show modal instead of loading content
+                if (detailResponse.data.isPremium === true) {
+                  setPendingStory(detailResponse.data);
+                  setShowPremiumModal(true);
+                  setLoading(false);
+                  clearTimeout(timeoutId);
+                  return;
+                }
                 setStory(detailResponse.data);
+              } else if (detailResponse.subscriptionRequired) {
+                setShowPremiumModal(true);
                 setLoading(false);
                 clearTimeout(timeoutId);
                 return;
               }
-            } catch (err) {
-              console.error("Failed to fetch specific story:", err);
             }
+          } catch (err) {
+            console.error("Failed to fetch specific story:", err);
           }
-          
-          // Otherwise use first story from list
-          setStory(response.data[0]);
-          setLoading(false);
-          clearTimeout(timeoutId);
-        } else {
-          // No stories from API, use fallback
-          setStory(FALLBACK_STORY);
-          setLoading(false);
-          clearTimeout(timeoutId);
         }
+        
+        // If no story found or no storyId, fetch from list
+        if (!story && isMounted) {
+          const response = await fetchStories({ page: 1, limit: 5 });
+          
+          if (!isMounted) return;
+          
+          if (response.success && response.data && response.data.length > 0) {
+            const firstStory = response.data[0];
+            // Check if first story is premium
+            if (firstStory.isPremium === true) {
+              setPendingStory(firstStory);
+              setShowPremiumModal(true);
+              setLoading(false);
+              clearTimeout(timeoutId);
+              return;
+            }
+            setStory(firstStory);
+          } else {
+            setStory(FALLBACK_STORY);
+          }
+        }
+        setLoading(false);
+        clearTimeout(timeoutId);
       } catch (err) {
         console.error("Error loading stories:", err);
         if (isMounted) {
-          // Use fallback data on error
           setStory(FALLBACK_STORY);
-          setError(null); // Clear error to show content
+          setError(null);
           setLoading(false);
           clearTimeout(timeoutId);
         }
@@ -143,7 +232,7 @@ const Newsome = ({ storyId, storySlug }: NewsomeProps) => {
   // Fetch reactions (non-blocking)
   useEffect(() => {
     const loadReactions = async () => {
-      if (!story?._id || story?._id === FALLBACK_STORY._id) return;
+      if (!story?._id || story?._id === FALLBACK_STORY._id || isStoryPremium) return;
       
       try {
         const response = await getMyReaction("story", story._id);
@@ -153,19 +242,18 @@ const Newsome = ({ storyId, storySlug }: NewsomeProps) => {
         }
       } catch (err) {
         console.error("Failed to load reactions:", err);
-        // Keep default values, don't show error
       }
     };
 
-    if (story?._id) {
+    if (story?._id && !isStoryPremium) {
       loadReactions();
     }
-  }, [story?._id]);
+  }, [story?._id, isStoryPremium]);
 
   // Fetch comments count (non-blocking)
   useEffect(() => {
     const loadComments = async () => {
-      if (!story?._id || story?._id === FALLBACK_STORY._id) return;
+      if (!story?._id || story?._id === FALLBACK_STORY._id || isStoryPremium) return;
       
       try {
         const response = await getComments("story", story._id, 1, 1);
@@ -174,19 +262,18 @@ const Newsome = ({ storyId, storySlug }: NewsomeProps) => {
         }
       } catch (err) {
         console.error("Failed to load comments:", err);
-        // Keep default value
       }
     };
 
-    if (story?._id) {
+    if (story?._id && !isStoryPremium) {
       loadComments();
     }
-  }, [story?._id]);
+  }, [story?._id, isStoryPremium]);
 
   // Check if story is saved (non-blocking)
   useEffect(() => {
     const checkIfSaved = async () => {
-      if (!story?._id || story?._id === FALLBACK_STORY._id) return;
+      if (!story?._id || story?._id === FALLBACK_STORY._id || isStoryPremium) return;
       
       try {
         const response = await checkSaved(story._id, "saved");
@@ -198,14 +285,14 @@ const Newsome = ({ storyId, storySlug }: NewsomeProps) => {
       }
     };
 
-    if (story?._id) {
+    if (story?._id && !isStoryPremium) {
       checkIfSaved();
     }
-  }, [story?._id]);
+  }, [story?._id, isStoryPremium]);
 
   // Handle reaction click
   const handleReaction = async (type: ReactionType) => {
-    if (!story?._id || story?._id === FALLBACK_STORY._id || reactionLoading) return;
+    if (!story?._id || story?._id === FALLBACK_STORY._id || reactionLoading || isStoryPremium) return;
     
     setReactionLoading(true);
     try {
@@ -225,18 +312,28 @@ const Newsome = ({ storyId, storySlug }: NewsomeProps) => {
     }
   };
 
+  // Handle read more click
+  const handleReadMore = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (isStoryPremium) {
+      setPendingStory(story);
+      setShowPremiumModal(true);
+    } else if (story?._id) {
+      router.push(`/reader/story/${story._id}`);
+    }
+  };
+
   // Handle comment submission
   const handleSubmitComment = async () => {
-    if (!story?._id || story?._id === FALLBACK_STORY._id) {
+    if (!story?._id || story?._id === FALLBACK_STORY._id || isStoryPremium) {
       alert("Please login to comment");
       return;
     }
-    // Implement comment modal or redirect to login
   };
 
   // Handle save/unsave
   const handleToggleSave = async () => {
-    if (!story?._id || story?._id === FALLBACK_STORY._id || savingLoading) {
+    if (!story?._id || story?._id === FALLBACK_STORY._id || savingLoading || isStoryPremium) {
       alert("Please login to save stories");
       return;
     }
@@ -246,6 +343,7 @@ const Newsome = ({ storyId, storySlug }: NewsomeProps) => {
       const response = await toggleSave("story", story._id, "saved");
       if (response.success) {
         setIsSaved(response.data.isSaved);
+        toast.success(response.data.isSaved ? "Story saved!" : "Removed from saved.");
       }
     } catch (err) {
       console.error("Failed to toggle save:", err);
@@ -276,15 +374,39 @@ const Newsome = ({ storyId, storySlug }: NewsomeProps) => {
     }
   };
 
+  // Premium modal handlers
+  const handleSubscribeRedirect = () => {
+    setShowPremiumModal(false);
+    router.push("/reader/subscribe");
+  };
+
+  const handleModalClose = () => {
+    setShowPremiumModal(false);
+    setPendingStory(null);
+    // If no story loaded, use fallback
+    if (!story) {
+      setStory(FALLBACK_STORY);
+    }
+  };
+
   // Format large numbers
-  const formatNumber = (num: number): string => {
+  const formatNumber = (num?: number): string => {
+    if (typeof num !== "number" || isNaN(num)) return "0";
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
     if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
     return num.toString();
   };
 
+  // Simple toast function (since no toast import)
+  const toast = {
+    success: (msg: string) => {
+      console.log(msg);
+      alert(msg);
+    }
+  };
+
   // Show loading with timeout indicator
-  if (loading && !apiTimeout) {
+  if (loading && !apiTimeout && !showPremiumModal) {
     return (
       <section className="relative w-full min-h-[500px] flex items-center justify-center bg-black">
         <div className="text-white text-center">
@@ -296,209 +418,222 @@ const Newsome = ({ storyId, storySlug }: NewsomeProps) => {
     );
   }
 
+  // Show premium modal if needed
+  if (showPremiumModal) {
+    return (
+      <>
+        <section className="relative w-full min-h-[500px] flex items-center justify-center bg-black">
+          <div className="text-white text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#3B55E6] mx-auto mb-4"></div>
+            <p className="text-gray-400">Loading...</p>
+          </div>
+        </section>
+        <PremiumModal
+          isOpen={showPremiumModal}
+          onClose={handleModalClose}
+          onSubscribe={handleSubscribeRedirect}
+        />
+      </>
+    );
+  }
+
   // Always show story (either from API or fallback)
   const displayStory = story || FALLBACK_STORY;
 
   return (
-    <section className="relative w-full min-h-[500px] flex flex-col md:flex-row bg-black overflow-hidden">
+    <>
+      <PremiumModal
+        isOpen={showPremiumModal}
+        onClose={handleModalClose}
+        onSubscribe={handleSubscribeRedirect}
+      />
+      
+      <section className="relative w-full min-h-[500px] flex flex-col md:flex-row bg-black overflow-hidden">
 
-      {/* LEFT CONTENT - Editorial Text Section */}
-      <div className="w-full md:w-1/2 flex items-center justify-center bg-black text-white px-8 sm:px-12 lg:px-20 py-16 z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="max-w-[480px] text-center flex flex-col items-center"
-        >
-          {/* Category Badge */}
-          {displayStory.category && (
-            <span className="text-[#3B55E6] text-xs uppercase tracking-wider font-sans mb-3">
-              {displayStory.category}
-            </span>
-          )}
-
-          {/* Main Headline */}
-          <h1 className="text-white text-[38px] md:text-[48px] lg:text-[52px] leading-[1.15] mb-6 tracking-tight font-sans">
-            {displayStory.title}
-          </h1>
-
-          {/* Author Info */}
-          {displayStory.author && (
-            <div className="flex items-center gap-3 mb-4">
-              {displayStory.author.profileImage && (
-                <img 
-                  src={displayStory.author.profileImage} 
-                  alt={displayStory.author.name}
-                  className="w-8 h-8 rounded-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
-                />
-              )}
-              <span className="text-gray-400 text-sm">By {displayStory.author.name}</span>
-            </div>
-          )}
-
-          {/* Subtext / Summary */}
-          <p className="text-gray-400 text-[14px] md:text-[15px] font-serif leading-relaxed mb-6 max-w-[400px]">
-            {displayStory.summary}
-          </p>
-
-          {/* Reading Time */}
-          {displayStory.readingTime && (
-            <p className="text-gray-500 text-xs mb-4">
-              {displayStory.readingTime} min read
-            </p>
-          )}
-
-          {/* Read More Link */}
-          <motion.a
-            href={`/story/${displayStory._id}`}
-            whileHover={{ x: 4 }}
-            className="flex items-center gap-1 text-[#3B55E6] text-[16px] font-sans font-medium mb-10 hover:text-blue-400 transition-colors"
+        {/* LEFT CONTENT - Editorial Text Section */}
+        <div className="w-full md:w-1/2 flex items-center justify-center bg-black text-white px-8 sm:px-12 lg:px-20 py-16 z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="max-w-[480px] text-center flex flex-col items-center"
           >
-            Read More
-            <ArrowUpRight size={16} />
-          </motion.a>
+            {/* Category Badge */}
+            {displayStory.category && (
+              <span className="text-[#3B55E6] text-xs uppercase tracking-wider font-sans mb-3">
+                {displayStory.category}
+                {isStoryPremium && (
+                  <span className="inline-block ml-2 text-[9px] bg-yellow-500/20 text-yellow-400 px-1.5 py-0.5 rounded-full">Premium</span>
+                )}
+              </span>
+            )}
 
-          {/* Stats Bar */}
-          <div className="flex items-center gap-10 text-white pt-6 border-t border-white/10 w-full justify-center">
-            {/* Reactions section */}
-            <div className="relative group">
-              <div className="flex items-center gap-1">
+            {/* Main Headline */}
+            <h1 className="text-white text-[38px] md:text-[48px] lg:text-[52px] leading-[1.15] mb-6 tracking-tight font-sans">
+              {displayStory.title}
+            </h1>
+
+            {/* Author Info */}
+            {displayStory.author && (
+              <div className="flex items-center gap-3 mb-4">
+                {displayStory.author.profileImage && (
+                  <img 
+                    src={displayStory.author.profileImage} 
+                    alt={displayStory.author.name}
+                    className="w-8 h-8 rounded-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                )}
+                <span className="text-gray-400 text-sm">By {displayStory.author.name}</span>
+              </div>
+            )}
+
+            {/* Subtext / Summary */}
+            <p className="text-gray-400 text-[14px] md:text-[15px] font-serif leading-relaxed mb-6 max-w-[400px]">
+              {displayStory.summary}
+            </p>
+
+            {/* Reading Time */}
+            {displayStory.readingTime && (
+              <p className="text-gray-500 text-xs mb-4">
+                {displayStory.readingTime} min read
+              </p>
+            )}
+
+            {/* Read More Link */}
+            <button
+              onClick={handleReadMore}
+              className="flex items-center gap-1 text-[#3B55E6] text-[16px] font-sans font-medium mb-10 hover:text-blue-400 transition-colors"
+            >
+              Read More
+              <ArrowUpRight size={16} />
+            </button>
+
+            {/* Stats Bar */}
+            <div className="flex items-center gap-10 text-white pt-6 border-t border-white/10 w-full justify-center">
+              {/* Reactions section */}
+              <div>
                 <button
                   onClick={() => handleReaction("like")}
                   className={`flex items-center gap-2 cursor-pointer transition-colors ${
                     myReaction === "like" ? "text-[#3B55E6]" : "hover:text-white"
-                  }`}
-                  disabled={reactionLoading}
+                  } ${isStoryPremium ? "opacity-50 cursor-not-allowed" : ""}`}
+                  disabled={reactionLoading || isStoryPremium}
                 >
                   <ThumbsUp size={16} strokeWidth={1.5} />
                   <span className="text-[13px] font-sans">{formatNumber(reactionSummary.like)}</span>
                 </button>
-                {/* Reactions dropdown */}
-                <div className="absolute bottom-full left-0 mb-2 hidden group-hover:flex bg-white rounded-lg shadow-lg p-2 gap-2 z-20">
-                  {(["like", "love", "wow", "sad", "angry"] as ReactionType[]).map((type) => (
-                    <button
-                      key={type}
-                      onClick={() => handleReaction(type)}
-                      className={`px-2 py-1 text-xs rounded capitalize ${
-                        myReaction === type ? "bg-[#3B55E6] text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                      }`}
-                    >
-                      {type}
-                    </button>
-                  ))}
-                </div>
               </div>
-            </div>
 
-            {/* Comments */}
-            <button
-              onClick={handleSubmitComment}
-              className="flex items-center gap-2 cursor-pointer hover:text-white transition-colors"
-            >
-              <MessageSquare size={16} strokeWidth={1.5} />
-              <span className="text-[13px] font-sans">{formatNumber(commentCount)}</span>
-            </button>
-
-            {/* Share */}
-            <div className="relative">
+              {/* Comments */}
               <button
-                onClick={handleShare}
+                onClick={handleSubmitComment}
                 className="flex items-center gap-2 cursor-pointer hover:text-white transition-colors"
               >
-                <Share2 size={16} strokeWidth={1.5} />
-                <span className="text-[13px] font-sans">Share</span>
+                <MessageSquare size={16} strokeWidth={1.5} />
+                <span className="text-[13px] font-sans">{formatNumber(commentCount)}</span>
               </button>
-              {showShareTooltip && (
-                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap z-30">
-                  Link copied!
-                </div>
-              )}
+
+              {/* Share */}
+              <div className="relative">
+                <button
+                  onClick={handleShare}
+                  className="flex items-center gap-2 cursor-pointer hover:text-white transition-colors"
+                >
+                  <Share2 size={16} strokeWidth={1.5} />
+                  <span className="text-[13px] font-sans">Share</span>
+                </button>
+                {showShareTooltip && (
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap z-30">
+                    Link copied!
+                  </div>
+                )}
+              </div>
+
+              {/* Save/Bookmark */}
+              <button
+                onClick={handleToggleSave}
+                disabled={savingLoading || isStoryPremium}
+                className={`flex items-center gap-2 cursor-pointer transition-colors ${isStoryPremium ? "opacity-50 cursor-not-allowed" : "hover:text-white"}`}
+              >
+                {isSaved ? (
+                  <BookmarkCheck size={16} strokeWidth={1.5} className="text-[#3B55E6]" />
+                ) : (
+                  <Bookmark size={16} strokeWidth={1.5} />
+                )}
+                <span className="text-[13px] font-sans">{isSaved ? "Saved" : "Save"}</span>
+              </button>
             </div>
 
-            {/* Save/Bookmark */}
-            <button
-              onClick={handleToggleSave}
-              disabled={savingLoading}
-              className="flex items-center gap-2 cursor-pointer hover:text-white transition-colors"
-            >
-              {isSaved ? (
-                <BookmarkCheck size={16} strokeWidth={1.5} className="text-[#3B55E6]" />
-              ) : (
-                <Bookmark size={16} strokeWidth={1.5} />
-              )}
-              <span className="text-[13px] font-sans">{isSaved ? "Saved" : "Save"}</span>
-            </button>
-          </div>
+            {/* API timeout notice (only shown when using fallback) */}
+            {apiTimeout && (
+              <div className="mt-4 text-xs text-gray-500">
+                <span>Using cached content</span>
+              </div>
+            )}
+          </motion.div>
+        </div>
 
-          {/* API timeout notice (only shown when using fallback) */}
-          {apiTimeout && (
-            <div className="mt-4 text-xs text-gray-500">
-              <span>Using cached content</span>
-            </div>
-          )}
-        </motion.div>
-      </div>
+        {/* RIGHT CONTENT - Red Tinted Portrait */}
+        <div className="w-full md:w-1/2 flex items-center justify-center bg-black py-10 md:py-0">
+          <motion.div
+            initial={{ opacity: 0, scale: 1.04 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1.2 }}
+            className="relative"
+            style={{ width: 303, height: 405 }}
+          >
+            <img
+              src={displayStory.coverImage || "/newsone.png"}
+              alt={displayStory.title}
+              className="w-full h-full object-cover block"
+              style={{ display: "block" }}
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = "/newsone.png";
+              }}
+            />
 
-      {/* RIGHT CONTENT - Red Tinted Portrait */}
-      <div className="w-full md:w-1/2 flex items-center justify-center bg-black py-10 md:py-0">
-        <motion.div
-          initial={{ opacity: 0, scale: 1.04 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1.2 }}
-          className="relative"
-          style={{ width: 303, height: 405 }}
-        >
-          <img
-            src={displayStory.coverImage || "/newsone.png"}
-            alt={displayStory.title}
-            className="w-full h-full object-cover block"
-            style={{ display: "block" }}
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = "/newsone.png";
-            }}
-          />
+            {/* Red color overlay */}
+            <div
+              className="absolute inset-0"
+              style={{
+                backgroundColor: "#C0170B",
+                mixBlendMode: "multiply",
+                opacity: 1,
+              }}
+            />
 
-          {/* Red color overlay */}
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundColor: "#C0170B",
-              mixBlendMode: "multiply",
-              opacity: 1,
-            }}
-          />
+            {/* Extra red hue overlay */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background: "linear-gradient(135deg, rgba(180,20,10,0.55) 0%, rgba(220,60,20,0.35) 100%)",
+                mixBlendMode: "screen",
+                opacity: 0.4,
+              }}
+            />
 
-          {/* Extra red hue overlay */}
-          <div
-            className="absolute inset-0"
-            style={{
-              background: "linear-gradient(135deg, rgba(180,20,10,0.55) 0%, rgba(220,60,20,0.35) 100%)",
-              mixBlendMode: "screen",
-              opacity: 0.4,
-            }}
-          />
+            {/* Left fade */}
+            <div
+              className="absolute inset-y-0 left-0 w-16"
+              style={{
+                background: "linear-gradient(to right, #000000 0%, transparent 100%)",
+              }}
+            />
 
-          {/* Left fade */}
-          <div
-            className="absolute inset-y-0 left-0 w-16"
-            style={{
-              background: "linear-gradient(to right, #000000 0%, transparent 100%)",
-            }}
-          />
-
-          {/* Bottom fade */}
-          <div
-            className="absolute inset-x-0 bottom-0 h-16"
-            style={{
-              background: "linear-gradient(to top, #000000 0%, transparent 100%)",
-            }}
-          />
-        </motion.div>
-      </div>
-    </section>
+            {/* Bottom fade */}
+            <div
+              className="absolute inset-x-0 bottom-0 h-16"
+              style={{
+                background: "linear-gradient(to top, #000000 0%, transparent 100%)",
+              }}
+            />
+          </motion.div>
+        </div>
+      </section>
+    </>
   );
 };
 
