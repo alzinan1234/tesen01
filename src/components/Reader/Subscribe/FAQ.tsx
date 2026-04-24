@@ -1,12 +1,18 @@
-"use client"
+"use client";
+
 import React, { useState } from 'react';
 import { Plus, Minus } from 'lucide-react';
 
+interface FAQItem {
+  question: string;
+  answer: string;
+}
+
 const FAQ = () => {
   // State to track which accordion item is open
-  const [openIndex, setOpenIndex] = useState(0); // Default first one open as per image
+  const [openIndex, setOpenIndex] = useState<number | null>(0); // Default first one open as per image
 
-  const faqData = [
+  const faqData: FAQItem[] = [
     {
       question: "What do I get with an OPED Premium subscription?",
       answer: "The OPED Free plan allows readers to explore the platform at no cost. You can read a selection of free articles, browse categories and authors, listen to limited podcast episodes, and create an account to personalize your feed. This plan is ideal for new readers who want to understand OPED's editorial style before upgrading to Premium."
@@ -41,7 +47,7 @@ const FAQ = () => {
     }
   ];
 
-  const toggleAccordion = (index) => {
+  const toggleAccordion = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
   };
 
@@ -86,7 +92,7 @@ const FAQ = () => {
                   openIndex === index ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
                 }`}
               >
-                <div className="p-6 pt-0 text-gray-700  leading-relaxed text-sm md:text-base border-t border-gray-50">
+                <div className="p-6 pt-0 text-gray-700 leading-relaxed text-sm md:text-base border-t border-gray-50">
                   {item.answer}
                 </div>
               </div>

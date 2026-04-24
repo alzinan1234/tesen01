@@ -2,7 +2,14 @@
 //  theLedApiClient.ts  –  API client for "The Lede" story slider
 // ============================================================
 
-import { BASE_URL, READER_STORIES, StoryListParams } from "./api";
+import { BASE_URL, READER_STORIES } from "./api";
+
+// ── StoryListParams type definition ───────────────────────────
+export interface StoryListParams {
+  category?: string;
+  page?: number;
+  limit?: number;
+}
 
 // ── Types ─────────────────────────────────────────────────────
 

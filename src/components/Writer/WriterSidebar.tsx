@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -22,7 +22,13 @@ const navItems = [
   // { name: "Profile & Settings", href: "/writer/settings", icon: UserCog },
 ];
 
-const WriterSidebar = ({ isOpen, setIsOpen }) => {
+// Add proper TypeScript interface for props
+interface WriterSidebarProps {
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+}
+
+const WriterSidebar = ({ isOpen, setIsOpen }: WriterSidebarProps) => {
   const pathname = usePathname();
 
   return (

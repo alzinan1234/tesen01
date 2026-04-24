@@ -141,13 +141,19 @@ const CommentItem: React.FC<CommentItemProps> = ({
                       className="absolute right-0 mt-1 w-36 bg-white shadow-xl rounded-xl border border-gray-100 z-20 overflow-hidden"
                     >
                       <button
-                        onClick={() => { setShowMenu(false); onEdit(comment._id, comment.content); }}
+                        onClick={async () => { 
+                          setShowMenu(false); 
+                          await onEdit(comment._id, comment.content); 
+                        }}
                         className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 w-full transition-colors"
                       >
                         <Edit2 size={13} /> Edit
                       </button>
                       <button
-                        onClick={() => { setShowMenu(false); onDelete(comment._id); }}
+                        onClick={async () => { 
+                          setShowMenu(false); 
+                          await onDelete(comment._id); 
+                        }}
                         className="flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 w-full transition-colors"
                       >
                         <Trash2 size={13} /> Delete
@@ -329,7 +335,8 @@ const CommentModal: React.FC<CommentModalProps> = ({ storyId, storyTitle, curren
     } finally { setPosting(false); }
   };
 
-  const handleReply = async (parentId: string, content: string) => {
+  // Fixed: Changed to async function that returns Promise<void>
+  const handleReply = async (parentId: string, content: string): Promise<void> => {
     try {
       await addComment("story", storyId, content, parentId);
       await load(1);
@@ -349,7 +356,10 @@ const CommentModal: React.FC<CommentModalProps> = ({ storyId, storyTitle, curren
     return res.data;
   };
 
-  const handleEditOpen = (id: string, content: string) => setEditModal({ open: true, id, content });
+  // Fixed: Changed to async function that returns Promise<void>
+  const handleEditOpen = async (id: string, content: string): Promise<void> => {
+    setEditModal({ open: true, id, content });
+  };
 
   const handleEditSave = async (newContent: string) => {
     await editComment(editModal.id, newContent);
@@ -650,7 +660,8 @@ const AllSavedStories = () => {
         setHasMore(pageNum < res.pagination.totalPages);
         setPage(pageNum);
 
-        await Promise.all(newItems.map(async (item) => {
+        // Fixed: Added proper await handling for promises
+        const fetchPromises = newItems.map(async (item) => {
           const story = item.content as Story;
           const sid = story._id;
           try {
@@ -664,7 +675,8 @@ const AllSavedStories = () => {
             const r = await getComments("story", sid, 1, 1);
             if (r.success) setCommentCount(p => ({ ...p, [sid]: r.pagination.total }));
           } catch {}
-        }));
+        });
+        await Promise.all(fetchPromises);
       }
     } catch (err: any) {
       setError(err.message || "Failed to load saved stories");

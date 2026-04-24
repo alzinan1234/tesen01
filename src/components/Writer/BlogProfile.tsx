@@ -139,13 +139,19 @@ const CommentItem: React.FC<CommentItemProps> = ({
                       className="absolute right-0 mt-1 w-36 bg-white shadow-xl rounded-xl border border-gray-100 z-20 overflow-hidden"
                     >
                       <button
-                        onClick={() => { setShowMenu(false); onEdit(comment._id, comment.content); }}
+                        onClick={async () => { 
+                          setShowMenu(false); 
+                          await onEdit(comment._id, comment.content); 
+                        }}
                         className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 w-full transition-colors"
                       >
                         <Edit2 size={13} /> Edit
                       </button>
                       <button
-                        onClick={() => { setShowMenu(false); onDelete(comment._id); }}
+                        onClick={async () => { 
+                          setShowMenu(false); 
+                          await onDelete(comment._id); 
+                        }}
                         className="flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 w-full transition-colors"
                       >
                         <Trash2 size={13} /> Delete
@@ -327,7 +333,8 @@ const CommentModal: React.FC<CommentModalProps> = ({ storyId, storyTitle, curren
     } finally { setPosting(false); }
   };
 
-  const handleReply = async (parentId: string, content: string) => {
+  // Fixed: Changed to async function that returns Promise<void>
+  const handleReply = async (parentId: string, content: string): Promise<void> => {
     try {
       await addComment("story", storyId, content, parentId);
       await load(1);
@@ -347,7 +354,10 @@ const CommentModal: React.FC<CommentModalProps> = ({ storyId, storyTitle, curren
     return res.data;
   };
 
-  const handleEditOpen = (id: string, content: string) => setEditModal({ open: true, id, content });
+  // Fixed: Changed to async function that returns Promise<void>
+  const handleEditOpen = async (id: string, content: string): Promise<void> => {
+    setEditModal({ open: true, id, content });
+  };
 
   const handleEditSave = async (newContent: string) => {
     await editComment(editModal.id, newContent);
@@ -690,14 +700,6 @@ const BlogProfile = () => {
 
       {/* Profile Header */}
       <header className="flex flex-col md:flex-row items-center md:items-start gap-8 pb-12 border-b border-gray-100">
-        {/* <div className="w-36 h-36 rounded-full overflow-hidden flex-shrink-0 bg-blue-50 relative">
-          <div className="absolute inset-0 bg-blue-400/20 mix-blend-overlay"></div>
-          <img
-            src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=400"
-            alt="Writer"
-            className="w-full h-full object-cover"
-          />
-        </div> */}
         <div className="flex-1 text-center md:text-left">
           <h1 className="text-5xl font-sans font-bold text-black mb-4 tracking-tight text-center">Your Stories</h1>
           <p className="text-black text-[15px] leading-relaxed font-serif max-w-2xl text-center mx-auto">

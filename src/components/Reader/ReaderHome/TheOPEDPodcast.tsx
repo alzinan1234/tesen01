@@ -49,8 +49,8 @@ const PodcastCard: React.FC<PodcastCardProps> = ({ podcast, isPlaying, onPlay, o
     if (isPlaying) {
       onPause();
     } else {
-      // The podcast must have an audioUrl field – adjust if your API uses a different name
-      const audioUrl = (podcast as any).audioUrl || (podcast as any).audio_url;
+      // The podcast must have an audioFile field
+      const audioUrl = (podcast as any).audioFile;
       if (!audioUrl) {
         console.warn("No audio URL for podcast:", podcast._id);
         return;
@@ -100,16 +100,16 @@ const PodcastCard: React.FC<PodcastCardProps> = ({ podcast, isPlaying, onPlay, o
           <div className="text-[11px] text-black font-serif font-medium">
             {podcast.audioDuration} min • {formatDate(podcast.createdAt)}
           </div>
-          {/* <button
+          <button
             onClick={handlePlayClick}
             className="hover:scale-110 transition-transform border border-gray-300 rounded-full p-2 bg-gray-100"
           >
             {isPlaying ? (
               <Pause size={20} className="text-black" fill="black" />
             ) : (
-              <Play size={20} fill="black" className="text-black" />
+              <Play size={20} fill="black" className="text-black ml-0.5" />
             )}
-          </button> */}
+          </button>
         </div>
       </div>
     </div>
@@ -171,7 +171,7 @@ const TheOPEDPodcast: React.FC = () => {
     setPlayingId(null);
   };
 
-  // Fetch podcasts
+  // Fetch podcasts - Fixed: fetchAllPodcasts expects an object parameter, not two numbers
   useEffect(() => {
     let cancelled = false;
 
@@ -179,7 +179,8 @@ const TheOPEDPodcast: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetchAllPodcasts(1, 10);
+        // fetchAllPodcasts expects an object with page and limit properties
+        const res = await fetchAllPodcasts({ page: 1, limit: 10 });
         if (!cancelled && res.success) {
           setPodcasts(res.data);
         }
@@ -255,5 +256,4 @@ const TheOPEDPodcast: React.FC = () => {
     </section>
   );
 };
-
 export default TheOPEDPodcast;

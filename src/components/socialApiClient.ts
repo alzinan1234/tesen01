@@ -12,6 +12,9 @@ import {
   ListType,
 } from "./api";
 
+// Re-export types from api for use in components
+export type { ContentType, ReactionType, ListType };
+
 // ── Token helper ───────────────────────────────────────────
 function getAccessToken(): string | null {
   if (typeof window === "undefined") return null;

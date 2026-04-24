@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { ThumbsUp, MessageSquare, Share2, MoreHorizontal, ArrowUpRight } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
-import { getWriterStories, Story } from "@/components/writerStoryApiClient";
+import { getWriterStories } from "@/components/writerStoryApiClient";
 import { getMyReaction, getComments, addReaction } from "@/components/socialApiClient";
 
 type TabType = "pending" | "scheduled" | "revision" | "draft" | "saved" | "rejected";
@@ -14,6 +14,21 @@ interface TabConfig {
   status?: string;        // for writer API
   isScheduled?: boolean;  // special filter for scheduled
   isSaved?: boolean;      // special filter for saved stories (needs separate API)
+}
+
+// Define Story type locally
+interface Story {
+  _id: string;
+  title: string;
+  summary: string;
+  coverImage: string;
+  category: string;
+  tags: string[];
+  isPremium: boolean;
+  status: string;
+  scheduledAt: string | null;
+  createdAt: string;
+  readingTime: number;
 }
 
 const tabs: { [key in TabType]: TabConfig } = {
@@ -79,7 +94,8 @@ const SaveAndDraft = () => {
         // Fetch all statuses and filter those with scheduledAt
         const res = await getWriterStories({ status: "", page: currentPage, limit: 10 });
         if (res.success && res.data) {
-          const scheduled = res.data.filter(s => s.scheduledAt);
+          // Fixed: Added proper typing for the filter parameter
+          const scheduled = res.data.filter((s: Story) => s.scheduledAt);
           fetchedStories = scheduled;
           pagination = { ...res.pagination, total: scheduled.length, totalPages: Math.ceil(scheduled.length / (res.pagination?.limit || 10)) };
         } else {

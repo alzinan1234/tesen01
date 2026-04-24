@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react"; // 1. Import useRef
+import React, { useState, useRef, ChangeEvent } from "react"; // 1. Import useRef and ChangeEvent
 import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -14,15 +14,15 @@ export default function Profile() {
   const [profileImage, setProfileImage] = useState("/image/userImage.png");
 
   // 3. Create a ref to reference the hidden file input element
-  const fileInputRef = useRef(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleBackClick = () => {
     router.back();
   };
 
-  // 4. This function is called when the user selects a new file
-  const handleImageChange = (event) => {   
-    const file = event.target.files[0];
+  // 4. This function is called when the user selects a new file - Fixed with proper type
+  const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {   
+    const file = event.target.files?.[0];
     if (file) {
       // Create a temporary URL for the selected image to show a preview
       const newImageUrl = URL.createObjectURL(file);
@@ -38,43 +38,41 @@ export default function Profile() {
 
   // 5. This function programmatically clicks the hidden file input
   const handleImageClick = () => {  
-    fileInputRef.current.click();
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
   };
 
   return (
-    <div className="min-h-screen pt-28 text-white flex justify-center items-start pt-8 pb-8 rounded-lg font-sans">
+    <div className="min-h-screen pt-28 text-white flex justify-center items-start pb-8 rounded-lg font-sans">
       <div
-        className="flex items-center gap-4 cursor-pointer ml-5 "
+        className="flex items-center gap-4 cursor-pointer ml-5 absolute top-28 left-5"
         onClick={handleBackClick}
       >
         <div className="">
-          <ArrowLeft className="text-white bg-[#FFFFFF1A] rounded-full p-2 " size={40} />
+          <ArrowLeft className="text-white bg-[#FFFFFF1A] rounded-full p-2" size={40} />
         </div>
         <h1 className="text-2xl font-bold">Profile</h1>
-      </div>{" "}
+      </div>
       <div className="w-full max-w-6xl mx-auto px-4">
         <div className="p-6">
           <div className="flex justify-center gap-[18px] items-center mb-6">
-
             <div
               className="relative rounded-full border-4 border-gray-600 cursor-pointer"
               onClick={handleImageClick}
             >
-
-               {/* use the state varivale for the image for clock rounded-full for the full project overflow there are  */}
-
-             <div className="w-[100px] h-[100px] rounded-full overflow-hidden">
-               <Image
-                // 7. Use the state variable for the image source
-                src="/user-image.png"
-                alt="User Profile"
-                width={100}
-                height={100}
-                className="rounded-full"
-                // Ensure the image covers the area, useful for non-square images
-                style={{ objectFit: "cover" }} 
-              />
-             </div>
+              <div className="w-[100px] h-[100px] rounded-full overflow-hidden">
+                <Image
+                  // Use the state variable for the image source
+                  src={profileImage}
+                  alt="User Profile"
+                  width={100}
+                  height={100}
+                  className="rounded-full"
+                  // Ensure the image covers the area, useful for non-square images
+                  style={{ objectFit: "cover" }} 
+                />
+              </div>
               <span className="absolute bottom-0 right-0 bg-blue-500 rounded-full p-1 border-2 border-[#343434]">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -97,7 +95,7 @@ export default function Profile() {
           </div>
           <div className="flex justify-center mb-6">
             <button
-              className={`py-2 px-6 text-[16px] font-semibold ${
+              className={`py-2 px-6 text-[16px] font-semibold rounded-l-lg ${
                 activeTab === "editProfile"
                   ? "text-white"
                   : "text-black hover:text-gray-600"
@@ -108,7 +106,7 @@ export default function Profile() {
               Edit Profile
             </button>
             <button
-              className={`py-2 px-6 text-[16px] font-semibold ${
+              className={`py-2 px-6 text-[16px] font-semibold rounded-r-lg ${
                 activeTab === "changePassword"
                   ? "text-white"
                   : "text-black hover:text-gray-600"
@@ -120,18 +118,18 @@ export default function Profile() {
             </button>
           </div>
 
-          {/* 8. Add the hidden file input element. It won't be visible to the user. */}
+          {/* Hidden file input element */}
           <input
             type="file"
             ref={fileInputRef}
             onChange={handleImageChange}
             style={{ display: "none" }}
-            accept="image/png, image/jpeg, image/jpg" // Optionally restrict to image files
+            accept="image/png, image/jpeg, image/jpg, image/webp"
           />
 
           {activeTab === "editProfile" && (
             <div className="p-6 flex flex-col items-center">
-              <form className="w-full max-w-[982px] ">
+              <form className="w-full max-w-[982px]">
                 <div className="mb-4">
                   <label
                     htmlFor="fullName"
@@ -142,7 +140,7 @@ export default function Profile() {
                   <input
                     type="text"
                     id="fullName"
-                    className="shadow appearance-none rounded w-full h-[50px] py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline  border border-[#C3C3C3] text-black"
+                    className="shadow appearance-none rounded w-full h-[50px] py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline border border-[#C3C3C3] text-black"
                     defaultValue="Lukas Wagner"
                   />
                 </div>
@@ -156,7 +154,7 @@ export default function Profile() {
                   <input
                     type="email"
                     id="email"
-                    className="shadow appearance-none rounded w-full h-[50px] py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline  border border-[#C3C3C3] text-black"
+                    className="shadow appearance-none rounded w-full h-[50px] py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline border border-[#C3C3C3] text-black"
                     defaultValue="lukas.wagner@example.com"
                   />
                 </div>
@@ -170,18 +168,17 @@ export default function Profile() {
                   <input
                     type="tel"
                     id="contactNo"
-                    className="shadow appearance-none rounded w-full h-[50px] py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline  border border-[#C3C3C3] text-black"
+                    className="shadow appearance-none rounded w-full h-[50px] py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline border border-[#C3C3C3] text-black"
                     defaultValue="+1234567890"
                   />
                 </div>
                 <div className="flex items-center justify-center mt-6">
                   <button
                     type="submit"
-                    className="bg-[#9BD71B1A] hover:bg-opacity-80 text-white font-bold w-full py-3 px-4 rounded-[4px] focus:outline-none focus:shadow-outline "
-                     style={{
-            background: "linear-gradient(90deg, #343E87 12.02%, #3448D6 50%, #343E87 88.46%)",
-            
-          }}
+                    className="hover:bg-opacity-80 text-white font-bold w-full py-3 px-4 rounded-[4px] focus:outline-none focus:shadow-outline transition-opacity"
+                    style={{
+                      background: "linear-gradient(90deg, #343E87 12.02%, #3448D6 50%, #343E87 88.46%)",
+                    }}
                   >
                     Save Changes    
                   </button>
@@ -191,10 +188,6 @@ export default function Profile() {
           )}
           {activeTab === "changePassword" && <ChangePasswordForm />}
         </div>
-      </div>
-
-      <div>
-        
       </div>
     </div>
   );

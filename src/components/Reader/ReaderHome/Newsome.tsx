@@ -1,26 +1,36 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { ThumbsUp, MessageSquare, Share2, ArrowUpRight, Bookmark, BookmarkCheck, Crown, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { fetchStoryDetail, StoryDetailResponse, fetchStories } from "@/components/storyApiClient";
+import toast, { Toaster } from "react-hot-toast";
+import { fetchStoryDetail, fetchStories } from "@/components/storyApiClient";
 import { 
   getMyReaction, 
   addReaction, 
   getComments, 
-  addComment,
-  likeComment,
   checkSaved,
   toggleSave,
-  ReactionType,
-  Comment
+  ReactionType
 } from "@/components/socialApiClient";
 
 interface NewsomeProps {
   storyId?: string;
   storySlug?: string;
 }
+
+// Toast style
+const toastStyle = {
+  success: {
+    style: { background: "#000", color: "#fff", borderRadius: "999px", padding: "12px 20px", fontSize: "14px", fontFamily: "serif" },
+    iconTheme: { primary: "#fff", secondary: "#000" },
+  },
+  error: {
+    style: { background: "#fff", color: "#ef4444", borderRadius: "999px", padding: "12px 20px", fontSize: "14px", fontFamily: "serif", border: "1px solid #fecaca" },
+    iconTheme: { primary: "#ef4444", secondary: "#fff" },
+  },
+};
 
 // Fallback story data in case API fails completely
 const FALLBACK_STORY = {
@@ -48,13 +58,22 @@ interface PremiumModalProps {
 
 const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, onSubscribe }) => {
   return (
-    <div>
+    <AnimatePresence>
       {isOpen && (
-        <div
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md px-4"
           onClick={(e) => e.target === e.currentTarget && onClose()}
         >
-          <div className="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
+          <motion.div
+            initial={{ scale: 0.9, y: 20, opacity: 0 }}
+            animate={{ scale: 1, y: 0, opacity: 1 }}
+            exit={{ scale: 0.9, y: 20, opacity: 0 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl"
+          >
             <div className="relative bg-gradient-to-br from-[#343E87] via-[#3448D6] to-[#343E87] pt-8 pb-12 px-6 text-center">
               <div className="absolute top-4 right-4">
                 <button
@@ -94,10 +113,10 @@ const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, onSubscrib
                 </button>
               </div>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
-    </div>
+    </AnimatePresence>
   );
 };
 
@@ -324,17 +343,18 @@ const Newsome = ({ storyId, storySlug }: NewsomeProps) => {
   };
 
   // Handle comment submission
-  const handleSubmitComment = async () => {
+  const handleSubmitComment = () => {
     if (!story?._id || story?._id === FALLBACK_STORY._id || isStoryPremium) {
-      alert("Please login to comment");
+      toast.error("Please login to comment", toastStyle.error);
       return;
     }
+    toast.success("Comment feature coming soon!", toastStyle.success);
   };
 
   // Handle save/unsave
   const handleToggleSave = async () => {
     if (!story?._id || story?._id === FALLBACK_STORY._id || savingLoading || isStoryPremium) {
-      alert("Please login to save stories");
+      toast.error("Please login to save stories", toastStyle.error);
       return;
     }
     
@@ -343,10 +363,11 @@ const Newsome = ({ storyId, storySlug }: NewsomeProps) => {
       const response = await toggleSave("story", story._id, "saved");
       if (response.success) {
         setIsSaved(response.data.isSaved);
-        toast.success(response.data.isSaved ? "Story saved!" : "Removed from saved.");
+        toast.success(response.data.isSaved ? "Story saved!" : "Removed from saved.", toastStyle.success);
       }
     } catch (err) {
       console.error("Failed to toggle save:", err);
+      toast.error("Failed to save story", toastStyle.error);
     } finally {
       setSavingLoading(false);
     }
@@ -371,6 +392,7 @@ const Newsome = ({ storyId, storySlug }: NewsomeProps) => {
       navigator.clipboard.writeText(shareUrl);
       setShowShareTooltip(true);
       setTimeout(() => setShowShareTooltip(false), 2000);
+      toast.success("Link copied!", toastStyle.success);
     }
   };
 
@@ -397,14 +419,6 @@ const Newsome = ({ storyId, storySlug }: NewsomeProps) => {
     return num.toString();
   };
 
-  // Simple toast function (since no toast import)
-  const toast = {
-    success: (msg: string) => {
-      console.log(msg);
-      alert(msg);
-    }
-  };
-
   // Show loading with timeout indicator
   if (loading && !apiTimeout && !showPremiumModal) {
     return (
@@ -418,30 +432,13 @@ const Newsome = ({ storyId, storySlug }: NewsomeProps) => {
     );
   }
 
-  // Show premium modal if needed
-  if (showPremiumModal) {
-    return (
-      <>
-        <section className="relative w-full min-h-[500px] flex items-center justify-center bg-black">
-          <div className="text-white text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#3B55E6] mx-auto mb-4"></div>
-            <p className="text-gray-400">Loading...</p>
-          </div>
-        </section>
-        <PremiumModal
-          isOpen={showPremiumModal}
-          onClose={handleModalClose}
-          onSubscribe={handleSubscribeRedirect}
-        />
-      </>
-    );
-  }
-
   // Always show story (either from API or fallback)
   const displayStory = story || FALLBACK_STORY;
 
   return (
     <>
+      <Toaster position="bottom-center" />
+      
       <PremiumModal
         isOpen={showPremiumModal}
         onClose={handleModalClose}
