@@ -513,7 +513,7 @@ const CommentModal: React.FC<CommentModalProps> = ({ storyId, storyTitle, curren
               </h3>
               <p className="text-xs text-gray-400 font-serif mt-0.5 line-clamp-1">{storyTitle}</p>
             </div>
-            <button onClick={onClose} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors">
+            <button onClick={onClose} className="w-8 h-8 rounded-full bg-gray-100 text-black flex items-center justify-center hover:bg-gray-200 transition-colors">
               <X size={16} />
             </button>
           </div>

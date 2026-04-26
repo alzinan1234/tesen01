@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { Providers } from "./providers";
 
 // Path must match your sidebar: public -> fonts -> OPED-FONTS-OTF -> 61238.otf
 const cofoRaffine = localFont({
@@ -29,7 +30,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${cofoRaffine.variable} ${tenez.variable} antialiased`}>
-        {children}
+          <Providers>{children}</Providers>
       </body>
     </html>
   );
