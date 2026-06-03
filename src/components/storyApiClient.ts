@@ -45,6 +45,7 @@ export interface StoriesPagination {
   totalPages: number;
 }
 
+
 export interface StoriesResponse {
   success: boolean;
   data: Story[];
@@ -70,6 +71,8 @@ function buildQueryString(params: StoryListParams): string {
   const qs = query.toString();
   return qs ? `?${qs}` : "";
 }
+
+
 
 function getAccessToken(): string | null {
   if (typeof window === "undefined") return null;

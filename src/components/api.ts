@@ -2,7 +2,7 @@
 //  api.ts  –  All API endpoint definitions (TypeScript)
 // ============================================================
 
-export const BASE_URL = "https://katheleen-unerrant-consolingly.ngrok-free.dev";
+export const BASE_URL = "https://api.theopedmedia.com/health";
 
 export type Role = "reader" | "writer";
 
@@ -18,6 +18,7 @@ export interface AuthEndpoints {
   FORGOT: string;
   RESET: string;
 }
+
 
 export const READER_AUTH: AuthEndpoints = {
   SIGNUP: "/api/v1/reader/auth/signup",
@@ -57,7 +58,8 @@ export const READER_PROFILE: ProfileEndpoints = {
   GET_PROFILE: "/api/v1/reader/profile/get-profile",
   EDIT_PROFILE: "/api/v1/reader/profile/edit",
   CHANGE_PASSWORD: "/api/v1/reader/profile/change-password",
-};
+};    
+
 
 export const WRITER_PROFILE: ProfileEndpoints = {
   GET_PROFILE: "/api/v1/writer/profile/get-profile",
@@ -92,7 +94,6 @@ export const COMMENT_ENDPOINTS = {
   GET_BY_CONTENT: (contentType: string, contentId: string) =>
     `/api/v1/comment/${contentType}/${contentId}`,
 };
-
 // ── Reactions ──────────────────────────────────────────────
 export const REACTION_ENDPOINTS = {
   ADD: "/api/v1/react/add",
@@ -136,13 +137,11 @@ export const WRITER_PODCAST_ENDPOINTS = {
 export const READER_LIVE_NEWS = {
   GET_LIVE_NEWS: "/api/v1/live-news/reader/all",
 } as const;
-
 // ── Writer Story Endpoints (list & detail) ─────────────────
 export const WRITER_STORY_ENDPOINTS = {
   GET_ALL: "/api/v1/story/writer/my-stories",
   GET_DETAIL: (id: string) => `/api/v1/story/writer/my-stories/${id}`,
 } as const;
-
 // ── Shared types ───────────────────────────────────────────
 export type ContentType = "story" | "podcast";
 export type ReactionType = "like" | "love" | "wow" | "sad" | "angry";

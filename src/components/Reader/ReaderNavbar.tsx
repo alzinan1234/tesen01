@@ -24,7 +24,6 @@ const navLinks = [
   { name: "Podcasts",   href: "/reader/podcasts"   },
   { name: "Live News",  href: "/reader/live", icon: Radio },
 ];
-
 // ── Account Dropdown ──────────────────────────────────────────
 
 interface AccountDropdownProps {
@@ -103,6 +102,8 @@ const ReaderNavbar: React.FC = () => {
     return () => window.removeEventListener("focus", syncAuthState);
   }, []);
 
+
+
   // Close dropdown on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -142,14 +143,12 @@ const ReaderNavbar: React.FC = () => {
               <Menu size={28} />
             </button>
           </div>
-
           {/* Logo – centered */}
           <div className="absolute left-1/2 -translate-x-1/2">
             <Link href="/reader">
               <img src="/nav-logo.png" alt="OPED" className="h-8 md:h-12 w-auto object-contain" />
             </Link>
           </div>
-
           {/* RIGHT ACTIONS */}
           <div className="flex-1 flex justify-end items-center gap-2 sm:gap-4 lg:gap-6">
 
@@ -185,7 +184,6 @@ const ReaderNavbar: React.FC = () => {
                 Sign In
               </Link>
             )}
-
             {/* Subscribe button */}
             <Link href="/reader/subscribe" className="hidden sm:block">
               <button
@@ -194,12 +192,10 @@ const ReaderNavbar: React.FC = () => {
                 Subscribe
               </button>
             </Link>
-
             {/* 🔔 Notification Bell — only shown when logged in */}
             {isLoggedIn && (
               <NotificationBell className="hidden md:block" />
             )}
-
             {/* Search */}
             {/* <button className="text-gray-900 hover:text-[#3448D6] transition-colors p-1">
               <Search size={24} className="md:w-[28px] md:h-[28px]" />
@@ -207,7 +203,6 @@ const ReaderNavbar: React.FC = () => {
           </div>
         </div>
       </motion.div>
-
       {/* ── NAV LINKS ── */}
       <div className="w-full border-t border-gray-100 overflow-x-auto no-scrollbar">
 
@@ -234,7 +229,6 @@ const ReaderNavbar: React.FC = () => {
             <NotificationBell className="flex-shrink-0" />
           )}
         </div>
-
         {/* Desktop links */}
         <div className="hidden md:flex max-w-7xl mx-auto px-6 h-14 justify-center items-center gap-6 lg:gap-10">
           {navLinks.map((link) => {
@@ -261,8 +255,7 @@ const ReaderNavbar: React.FC = () => {
           })}
         </div>
       </div>
-
-      {/* ── MOBILE SIDEBAR ── */}
+      {/* ── MOBILE SIDEBAR ── */}    
       <AnimatePresence>
         {isOpen && (
           <>
@@ -282,7 +275,6 @@ const ReaderNavbar: React.FC = () => {
                   <X size={28} />
                 </button>
               </div>
-
               {isLoggedIn && user && (
                 <div className="px-6 py-4 bg-gray-50 border-b flex items-center gap-3">
                   {user.profileImage ? (
@@ -298,10 +290,10 @@ const ReaderNavbar: React.FC = () => {
                   </div>
                 </div>
               )}
-
               <div className="flex-1 overflow-y-auto p-6 space-y-6">
                 {navLinks.map((link) => {
                   const isActive = pathname === link.href;
+                  
                   return (
                     <Link key={link.name} href={link.href}
                       onClick={() => setIsOpen(false)}
@@ -314,8 +306,8 @@ const ReaderNavbar: React.FC = () => {
                     </Link>
                   );
                 })}
-
                 {isLoggedIn && (
+                
                   <div className="pt-4 border-t border-gray-100 space-y-4">
                     <Link href="/reader/profile" onClick={() => setIsOpen(false)}
                       className="flex items-center gap-2 text-gray-700 hover:text-[#3448D6] transition-colors"
@@ -335,7 +327,6 @@ const ReaderNavbar: React.FC = () => {
                   </div>
                 )}
               </div>
-
               <div className="p-6 border-t space-y-4 bg-gray-50">
                 {isLoggedIn ? (
                   <button onClick={() => { setIsOpen(false); handleLogout(); }}
@@ -358,7 +349,6 @@ const ReaderNavbar: React.FC = () => {
           </>
         )}
       </AnimatePresence>
-
       <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
