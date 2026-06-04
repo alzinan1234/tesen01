@@ -197,7 +197,7 @@ const SignUp: React.FC = () => {
       if (res.success) {
         showToast("Email verified successfully! Redirecting…", "success");
         setTimeout(() => {
-          window.location.href = activeRole === "writer" ? "/writer/dashboard" : "/dashboard";
+          window.location.href = activeRole === "writer" ? "/writer" : "/writer";
         }, 1500);
       }
     } catch (err: any) {
@@ -226,7 +226,7 @@ const SignUp: React.FC = () => {
   const onSocialLoginSuccess = () => {
     showToast("Login successful! Redirecting...", "success");
     setTimeout(() => {
-      window.location.href = activeRole === "writer" ? "/writer/dashboard" : "/dashboard";
+      window.location.href = activeRole === "writer" ? "/writer" : "/writer";
     }, 1500);
   };
 
