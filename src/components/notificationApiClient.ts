@@ -53,7 +53,7 @@ const getAuthHeaders = (): HeadersInit => {
   const token = tokenManager.getAccess();
   const headers: HeadersInit = {
     "Content-Type":               "application/json",
-    "ngrok-skip-browser-warning": "true",
+    
   };
   if (token) headers["Authorization"] = `Bearer ${token}`;
   return headers;

@@ -151,7 +151,7 @@ const apiClient: AxiosInstance = axios.create({
   baseURL: BASE_URL,
   headers: {
     "Content-Type":               "application/json",
-    "ngrok-skip-browser-warning": "true",
+   
   },
   timeout: 15000,
 });
@@ -224,7 +224,7 @@ apiClient.interceptors.response.use(
         const { data } = await axios.post<RefreshResponse>(
           `${BASE_URL}${endpoint}`,
           { refresh_token: refreshToken },
-          { headers: { "ngrok-skip-browser-warning": "true" } }
+          
         );
 
         const newAccess   = data.access_token;

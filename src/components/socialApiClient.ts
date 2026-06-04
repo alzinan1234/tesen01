@@ -36,7 +36,7 @@ async function apiRequest<T>(
   const token = getAccessToken();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    "ngrok-skip-browser-warning": "true",
+   
     Accept: "application/json",
   };
   if (token) headers["Authorization"] = `Bearer ${token}`;

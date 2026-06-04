@@ -2,7 +2,7 @@
 //  api.ts  –  All API endpoint definitions (TypeScript)
 // ============================================================
 
-export const BASE_URL = "https://api.theopedmedia.com/health";
+export const BASE_URL = "https://api.theopedmedia.com";
 
 export type Role = "reader" | "writer";
 

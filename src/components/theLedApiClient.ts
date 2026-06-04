@@ -79,7 +79,7 @@ export async function fetchLedeStories(
 
   const headers: Record<string, string> = {
     "Content-Type":               "application/json",
-    "ngrok-skip-browser-warning": "true",
+  
   };
 
   if (token) {

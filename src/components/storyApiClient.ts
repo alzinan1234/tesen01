@@ -96,7 +96,7 @@ export async function fetchStories(
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    "ngrok-skip-browser-warning": "true",
+ 
   };
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
@@ -121,7 +121,7 @@ export async function fetchStoryDetail(id: string): Promise<StoryDetailResponse>
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    "ngrok-skip-browser-warning": "true",
+
   };
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
